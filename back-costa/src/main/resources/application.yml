@@ -8,9 +8,9 @@ spring:
     name: ferrisys-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://db.fplxrlfojfocejmiahup.supabase.co:5432/postgres?sslmode=require
-    username: postgres
-    password: aU7U-4sWwXCje.6
+    url: ${SPRING_DATASOURCE_URL:PLEASE_SET_SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME:PLEASE_SET_SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD:PLEASE_SET_SPRING_DATASOURCE_PASSWORD}
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       minimum-idle: 5
@@ -32,11 +32,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
-  secret: Z3nU52@93xDklq902hAs78bLcNjsL29cHSsA9kPmsJq9kdPoaVq
+  secret: ${JWT_SECRET:PLEASE_SET_JWT_SECRET}
 
 management:
   endpoints:
     web:
       exposure:
         include: "health,info"
-

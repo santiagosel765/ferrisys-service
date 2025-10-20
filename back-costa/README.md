@@ -31,3 +31,27 @@ Ensure the following modules are already present and compiled:
 
 ## 📂 Project Structure
 
+## ⚙️ Configuration
+
+Set the required environment variables before running the service so credentials and secrets are not committed to the repository.
+
+### Windows PowerShell
+
+```powershell
+Set-Item -Path Env:SPRING_DATASOURCE_URL -Value "jdbc:postgresql://HOST:5432/postgres?sslmode=require"
+Set-Item -Path Env:SPRING_DATASOURCE_USERNAME -Value "postgres"
+Set-Item -Path Env:SPRING_DATASOURCE_PASSWORD -Value "your_password"
+Set-Item -Path Env:JWT_SECRET -Value "CHANGEME_32CHARS"
+```
+
+### Bash / Unix shells
+
+```bash
+export SPRING_DATASOURCE_URL="jdbc:postgresql://HOST:5432/postgres?sslmode=require"
+export SPRING_DATASOURCE_USERNAME="postgres"
+export SPRING_DATASOURCE_PASSWORD="your_password"
+export JWT_SECRET="CHANGEME_32CHARS"
+```
+
+For local development you can copy [`application-local.yml.sample`](src/main/resources/application-local.yml.sample) to `application-local.yml` and adjust the values according to your environment.
+
