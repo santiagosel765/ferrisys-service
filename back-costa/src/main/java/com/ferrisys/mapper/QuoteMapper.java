@@ -2,35 +2,30 @@ package com.ferrisys.mapper;
 
 import com.ferrisys.common.dto.QuoteDTO;
 import com.ferrisys.common.entity.business.Quote;
+import com.ferrisys.mapper.support.IdMappingSupport;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Mappings;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-
-import java.util.UUID;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
 @Mapper(
         componentModel = "spring",
         uses = {QuoteDetailMapper.class},
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
-public interface QuoteMapper {
+public interface QuoteMapper extends IdMappingSupport {
 
-    @Mappings({
-            @Mapping(target = "id", source = "id"),
-            @Mapping(target = "client.id", source = "clientId"),
-            @Mapping(target = "status", source = "status", defaultValue = "1")
-    })
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "client.id", source = "clientId")
     Quote toEntity(QuoteDTO dto);
 
-    @Mappings({
-            @Mapping(target = "id", source = "id"),
-            @Mapping(target = "clientId", source = "client.id")
-    })
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "clientId", source = "client.id")
     QuoteDTO toDto(Quote entity);
 
     List<QuoteDTO> toDtoList(List<Quote> entities);
@@ -40,13 +35,5 @@ public interface QuoteMapper {
         if (quote.getDetails() != null) {
             quote.getDetails().forEach(detail -> detail.setQuote(quote));
         }
-    }
-
-    default UUID toUuid(String id) {
-        return id == null ? null : UUID.fromString(id);
-    }
-
-    default String fromUuid(UUID id) {
-        return id == null ? null : id.toString();
     }
 }

@@ -2,14 +2,18 @@ package com.ferrisys.mapper;
 
 import com.ferrisys.common.dto.PurchaseDetailDTO;
 import com.ferrisys.common.entity.business.PurchaseDetail;
+import com.ferrisys.mapper.support.IdMappingSupport;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 
-import java.util.UUID;
-
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-public interface PurchaseDetailMapper {
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
+public interface PurchaseDetailMapper extends IdMappingSupport {
 
     @Mapping(target = "product.id", source = "productId")
     @Mapping(target = "purchase", ignore = true)
@@ -17,12 +21,4 @@ public interface PurchaseDetailMapper {
 
     @Mapping(target = "productId", source = "product.id")
     PurchaseDetailDTO toDto(PurchaseDetail entity);
-
-    default UUID toUuid(String id) {
-        return id == null ? null : UUID.fromString(id);
-    }
-
-    default String fromUuid(UUID id) {
-        return id == null ? null : id.toString();
-    }
 }
