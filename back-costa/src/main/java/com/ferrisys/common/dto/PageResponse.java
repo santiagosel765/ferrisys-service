@@ -1,19 +1,20 @@
 package com.ferrisys.common.dto;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.data.domain.Page;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class PageResponse<T> {
-    private List<T> content;
-    private int totalPages;
-    private long totalElements;
-    private int currentPage;
-    private int pageSize;
+public record PageResponse<T>(
+        List<T> content,
+        int totalPages,
+        long totalElements,
+        int page,
+        int size
+) {
+    public static <T> PageResponse<T> of(List<T> c, int totalPages, long totalElements, int page, int size) {
+        return new PageResponse<>(c, totalPages, totalElements, page, size);
+    }
+
+    public static <T> PageResponse<T> from(Page<T> p) {
+        return new PageResponse<>(p.getContent(), p.getTotalPages(), p.getTotalElements(), p.getNumber(), p.getSize());
+    }
 }
