@@ -23,11 +23,29 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class SecurityConfig {
 
+    private static final List<String> ALLOWED_ORIGINS = List.of(
+            "http://localhost:4200",
+            "https://clarifyerp.qbit-gt.com"
+    );
+
+    private static final List<String> ALLOWED_METHODS = List.of(
+            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+    );
+
+    private static final List<String> ALLOWED_HEADERS = List.of(
+            "Authorization", "Content-Type", "Accept", "X-Requested-With"
+    );
+
+    private static final List<String> EXPOSED_HEADERS = List.of(
+            "Authorization", "Content-Type", "Accept"
+    );
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, JwtFilterRequest jwtFilterRequest) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtFilterRequest jwtFilterRequest,
+                                           CorsConfigurationSource corsConfigurationSource) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v1/auth/login", "/v1/auth/register", "/actuator/health").permitAll()
@@ -42,13 +60,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:4200",
-                "https://clarifyerp.qbit-gt.com"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-        config.setExposedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        config.setAllowedOrigins(ALLOWED_ORIGINS);
+        config.setAllowedMethods(ALLOWED_METHODS);
+        config.setAllowedHeaders(ALLOWED_HEADERS);
+        config.setExposedHeaders(EXPOSED_HEADERS);
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
