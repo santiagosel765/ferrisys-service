@@ -42,12 +42,9 @@ npx ng serve -o
 - Asegurar que `src/environments/environment.ts` apunte al backend correcto.
 
 # 3. Migraciones y datos
-- Actualmente **no** existe herramienta de migraciones. Crear scripts SQL manuales antes de despliegues.
-- Recomendado introducir Flyway:
-  1. Añadir dependencia en `pom.xml`.
-  2. Crear `src/main/resources/db/migration/V1__baseline.sql` con todas las tablas actuales.
-  3. Ejecutar `./mvnw flyway:migrate` previo al arranque.
-- Cargar datos maestros (roles, módulos, estados) respetando los UUID de `DefaultRole` y `DefaultUserStatus`.
+- Las migraciones se administran con Flyway. Ejecutar siempre `./mvnw flyway:migrate` antes de iniciar el backend en un entorno nuevo.
+- Orden actual: `V1__baseline.sql` (crea esquema completo) seguido de `V2__seed_base.sql` (carga estados, roles y módulos base).
+- Los seeds respetan los UUID fijos definidos en `DefaultRole` y `DefaultUserStatus`.
 
 # 4. Troubleshooting
 
