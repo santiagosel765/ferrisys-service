@@ -17,10 +17,10 @@ import java.util.List;
 )
 public interface ModuleMapper extends IdMappingSupport {
 
-    @Mapping(target = "id", source = "id")
+    @Mapping(target = "id", expression = "java(toUuid(dto.id()))")
     AuthModule toEntity(ModuleDTO dto);
 
-    @Mapping(target = "id", source = "id")
+    @Mapping(target = "id", expression = "java(fromUuid(entity.getId()))")
     ModuleDTO toDto(AuthModule entity);
 
     List<ModuleDTO> toDtoList(List<AuthModule> entities);

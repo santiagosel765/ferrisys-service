@@ -2,6 +2,7 @@ package com.ferrisys.mapper;
 
 import com.ferrisys.common.dto.PurchaseDetailDTO;
 import com.ferrisys.common.entity.business.PurchaseDetail;
+import com.ferrisys.common.entity.inventory.Product;
 import com.ferrisys.mapper.support.IdMappingSupport;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,10 +16,23 @@ import org.mapstruct.ReportingPolicy;
 )
 public interface PurchaseDetailMapper extends IdMappingSupport {
 
-    @Mapping(target = "product.id", source = "productId")
+    @Mapping(target = "product", expression = "java(mapProduct(dto.productId()))")
     @Mapping(target = "purchase", ignore = true)
     PurchaseDetail toEntity(PurchaseDetailDTO dto);
 
-    @Mapping(target = "productId", source = "product.id")
+    @Mapping(target = "productId", expression = "java(fromProduct(entity.getProduct()))")
     PurchaseDetailDTO toDto(PurchaseDetail entity);
+
+    default Product mapProduct(String productId) {
+        if (productId == null || productId.isBlank()) {
+            return null;
+        }
+        Product product = new Product();
+        product.setId(toUuid(productId));
+        return product;
+    }
+
+    default String fromProduct(Product product) {
+        return product == null ? null : fromUuid(product.getId());
+    }
 }

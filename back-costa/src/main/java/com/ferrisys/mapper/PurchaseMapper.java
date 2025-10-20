@@ -1,6 +1,7 @@
 package com.ferrisys.mapper;
 
 import com.ferrisys.common.dto.PurchaseDTO;
+import com.ferrisys.common.entity.business.Provider;
 import com.ferrisys.common.entity.business.Purchase;
 import com.ferrisys.mapper.support.IdMappingSupport;
 import org.mapstruct.AfterMapping;
@@ -20,12 +21,12 @@ import java.util.List;
 )
 public interface PurchaseMapper extends IdMappingSupport {
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "provider.id", source = "providerId")
+    @Mapping(target = "id", expression = "java(toUuid(dto.id()))")
+    @Mapping(target = "provider", expression = "java(mapProvider(dto.providerId()))")
     Purchase toEntity(PurchaseDTO dto);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "providerId", source = "provider.id")
+    @Mapping(target = "id", expression = "java(fromUuid(entity.getId()))")
+    @Mapping(target = "providerId", expression = "java(fromProvider(entity.getProvider()))")
     PurchaseDTO toDto(Purchase entity);
 
     List<PurchaseDTO> toDtoList(List<Purchase> entities);
@@ -35,5 +36,18 @@ public interface PurchaseMapper extends IdMappingSupport {
         if (purchase.getDetails() != null) {
             purchase.getDetails().forEach(detail -> detail.setPurchase(purchase));
         }
+    }
+
+    default Provider mapProvider(String providerId) {
+        if (providerId == null || providerId.isBlank()) {
+            return null;
+        }
+        Provider provider = new Provider();
+        provider.setId(toUuid(providerId));
+        return provider;
+    }
+
+    default String fromProvider(Provider provider) {
+        return provider == null ? null : fromUuid(provider.getId());
     }
 }
