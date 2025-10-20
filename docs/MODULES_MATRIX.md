@@ -50,6 +50,8 @@ Leyenda: ✅ disponible/planificado, ⚠️ requiere adaptación, ? por definir.
 - Generar menú dinámico a partir de la lista (en lugar de menú hardcodeado en `MainLayoutComponent`).
 - Implementar `FeatureToggleDirective` para mostrar/ocultar componentes según permisos.
 
+> **Actualización:** El front ya consume `/v1/auth/modules` tras el login, persiste la lista en `SessionService` y usa `MenuBuilderService` + `PermissionGuard` para mostrar el menú dinámico y proteger rutas (`data.requiredModule`).
+
 # 4. Próximos pasos
 
 1. Normalizar catálogo de módulos en BD y asegurar que UUID/slug coincidan entre backend y frontend.

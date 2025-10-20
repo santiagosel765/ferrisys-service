@@ -1,14 +1,20 @@
 // src/app/layouts/main-layout/main-layout.component.ts
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+import { MenuBuilderService, MenuItemConfig, MenuSection } from '../core/services/menu-builder.service';
+import { SessionService } from '../services/session.service';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [RouterLink, RouterOutlet, NzIconModule, NzLayoutModule, NzMenuModule],
+  imports: [CommonModule, RouterLink, RouterOutlet, NzIconModule, NzLayoutModule, NzMenuModule],
   template: `
     <nz-layout class="app-layout">
   <nz-sider class="menu-sidebar"
@@ -24,166 +30,33 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
         <h1 [class.hidden]="isCollapsed">Qbit-SasS</h1>
       </div>
     </div>
-    
+
     <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
-      
-      <!-- 📊 PANEL PRINCIPAL -->
-      <li nz-submenu nzOpen nzTitle="Panel Principal" nzIcon="dashboard">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/welcome">
-              <nz-icon nzType="home"></nz-icon>
-              <span>Bienvenido</span>
-            </a>
+      <ng-container *ngIf="menuSections$ | async as sections">
+        <ng-container *ngFor="let section of sections; trackBy: trackBySection">
+          <li nz-submenu [nzTitle]="section.title" [nzIcon]="section.icon" [nzOpen]="section.openByDefault">
+            <ul>
+              <li
+                nz-menu-item
+                nzMatchRouter
+                *ngFor="let item of section.items; trackBy: trackByItem"
+              >
+                <a [routerLink]="item.route">
+                  <nz-icon [nzType]="item.icon"></nz-icon>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            </ul>
           </li>
-        </ul>
-      </li>
+        </ng-container>
 
-      <!-- 📦 GESTIÓN DE INVENTARIO -->
-      <li nz-submenu nzTitle="Gestión de Inventario" nzIcon="shop">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/categories/panel">
-              <nz-icon nzType="tags"></nz-icon>
-              <span>Categorías</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/products/panel">
-              <nz-icon nzType="shopping"></nz-icon>
-              <span>Productos</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/inventory/panel">
-              <nz-icon nzType="database"></nz-icon>
-              <span>Inventario</span>
-            </a>
-          </li>
-        </ul>
-      </li>
-
-      <!-- 🏢 ADMINISTRACIÓN -->
-      <li nz-submenu nzTitle="Administración" nzIcon="setting">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/companies/panel">
-              <nz-icon nzType="bank"></nz-icon>
-              <span>Empresas</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/users/panel">
-              <nz-icon nzType="team"></nz-icon>
-              <span>Usuarios</span>
-            </a>
-          </li>
-        </ul>
-      </li>
-
-      <!-- 📈 REPORTES Y ANÁLISIS -->
-      <li nz-submenu nzTitle="Reportes y Análisis" nzIcon="bar-chart">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/reports/sales">
-              <nz-icon nzType="line-chart"></nz-icon>
-              <span>Reportes de Ventas</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/reports/shipments">
-              <nz-icon nzType="car"></nz-icon>
-              <span>Reportes de Envíos</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/reports/supplier-requests">
-              <nz-icon nzType="interaction"></nz-icon>
-              <span>Solicitudes a Proveedores</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/reports/client-quotes">
-              <nz-icon nzType="file-text"></nz-icon>
-              <span>Clientes Cotizados</span>
-            </a>
-          </li>
-        </ul>
-      </li>
-
-      <!-- 💼 VENTAS Y OPERACIONES -->
-      <li nz-submenu nzTitle="Ventas y Operaciones" nzIcon="dollar">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/sales/new">
-              <nz-icon nzType="plus-circle"></nz-icon>
-              <span>Nueva Venta</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/sales/history">
-              <nz-icon nzType="history"></nz-icon>
-              <span>Historial de Ventas</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/quotes/panel">
-              <nz-icon nzType="file-search"></nz-icon>
-              <span>Cotizaciones</span>
-            </a>
-          </li>
-        </ul>
-      </li>
-
-      <!-- 📋 PROVEEDORES -->
-      <li nz-submenu nzTitle="Proveedores" nzIcon="contacts">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/suppliers/panel">
-              <nz-icon nzType="user"></nz-icon>
-              <span>Lista de Proveedores</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/purchase-orders/panel">
-              <nz-icon nzType="shopping-cart"></nz-icon>
-              <span>Órdenes de Compra</span>
-            </a>
-          </li>
-        </ul>
-      </li>
-
-      <!-- Separador visual -->
-      <li nz-menu-divider></li>
-
-      <!-- 🔧 CONFIGURACIÓN -->
-      <li nz-submenu nzTitle="Configuración" nzIcon="tool">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/settings/profile">
-              <nz-icon nzType="user"></nz-icon>
-              <span>Mi Perfil</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/settings/company">
-              <nz-icon nzType="bank"></nz-icon>
-              <span>Configuración General</span>
-            </a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a routerLink="/main/settings/backup">
-              <nz-icon nzType="cloud-download"></nz-icon>
-              <span>Respaldos</span>
-            </a>
-          </li>
-        </ul>
-      </li>
+        <li nz-menu-divider *ngIf="sections.length"></li>
+      </ng-container>
 
       <li nz-menu-item nzMatchRouter class="container-logout">
-          
+
           <a href="/logout">
-            <nz-icon nzType="logout" nzTheme="outline" />  
+            <nz-icon nzType="logout" nzTheme="outline" />
             <span>Cerrar Sesión</span>
           </a>
       </li>
@@ -335,7 +208,18 @@ nz-content {
 
 })
 export class MainLayoutComponent {
+  private readonly menuBuilderService = inject(MenuBuilderService);
+  private readonly sessionService = inject(SessionService);
+
+  readonly menuSections$: Observable<MenuSection[]> = this.sessionService.modules$.pipe(
+    map((modules) => this.menuBuilderService.buildMenu(modules)),
+  );
+
   isCollapsed = false;
+
+  readonly trackBySection = (_: number, section: MenuSection): string => section.title;
+
+  readonly trackByItem = (_: number, item: MenuItemConfig): string => item.route;
 
   logout(): void {
     // Aquí implementarías la lógica de logout
