@@ -3,9 +3,7 @@ package com.ferrisys.service.business.impl;
 import com.ferrisys.common.dto.PageResponse;
 import com.ferrisys.common.dto.QuoteDTO;
 import com.ferrisys.common.entity.business.Quote;
-import com.ferrisys.common.entity.business.QuoteDetail;
 import com.ferrisys.common.entity.inventory.Product;
-import com.ferrisys.mapper.QuoteDetailMapper;
 import com.ferrisys.mapper.QuoteMapper;
 import com.ferrisys.repository.ClientRepository;
 import com.ferrisys.repository.ProductRepository;
@@ -28,26 +26,23 @@ public class QuoteServiceImpl implements QuoteService {
     private final ProductRepository productRepository;
     private final QuoteDetailRepository detailRepository;
     private final QuoteMapper quoteMapper;
-    private final QuoteDetailMapper quoteDetailMapper;
 
     @Override
     @Transactional
     public void saveOrUpdate(QuoteDTO dto) {
         Quote quote = quoteMapper.toEntity(dto);
 
-        if (dto.clientId() != null) {
-            UUID clientId = UUID.fromString(dto.clientId());
+        if (quote.getClient() != null && quote.getClient().getId() != null) {
+            UUID clientId = quote.getClient().getId();
             quote.setClient(clientRepository.findById(clientId)
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado")));
         }
 
-        quoteRepository.save(quote);
+        quote = quoteRepository.save(quote);
 
         detailRepository.deleteByQuote(quote);
-        if (dto.details() != null) {
-            dto.details().forEach(detailDto -> {
-                QuoteDetail detail = quoteDetailMapper.toEntity(detailDto);
-                detail.setQuote(quote);
+        if (quote.getDetails() != null) {
+            quote.getDetails().forEach(detail -> {
                 if (detail.getProduct() != null && detail.getProduct().getId() != null) {
                     Product product = productRepository.findById(detail.getProduct().getId())
                             .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
