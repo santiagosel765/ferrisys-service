@@ -3,9 +3,7 @@ package com.ferrisys.service.business.impl;
 import com.ferrisys.common.dto.PageResponse;
 import com.ferrisys.common.dto.PurchaseDTO;
 import com.ferrisys.common.entity.business.Purchase;
-import com.ferrisys.common.entity.business.PurchaseDetail;
 import com.ferrisys.common.entity.inventory.Product;
-import com.ferrisys.mapper.PurchaseDetailMapper;
 import com.ferrisys.mapper.PurchaseMapper;
 import com.ferrisys.repository.ProductRepository;
 import com.ferrisys.repository.ProviderRepository;
@@ -28,26 +26,23 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final ProductRepository productRepository;
     private final PurchaseDetailRepository detailRepository;
     private final PurchaseMapper purchaseMapper;
-    private final PurchaseDetailMapper purchaseDetailMapper;
 
     @Override
     @Transactional
     public void saveOrUpdate(PurchaseDTO dto) {
         Purchase purchase = purchaseMapper.toEntity(dto);
 
-        if (dto.providerId() != null) {
-            UUID providerId = UUID.fromString(dto.providerId());
+        if (purchase.getProvider() != null && purchase.getProvider().getId() != null) {
+            UUID providerId = purchase.getProvider().getId();
             purchase.setProvider(providerRepository.findById(providerId)
                     .orElseThrow(() -> new RuntimeException("Proveedor no encontrado")));
         }
 
-        purchaseRepository.save(purchase);
+        purchase = purchaseRepository.save(purchase);
 
         detailRepository.deleteByPurchase(purchase);
-        if (dto.details() != null) {
-            dto.details().forEach(detailDto -> {
-                PurchaseDetail detail = purchaseDetailMapper.toEntity(detailDto);
-                detail.setPurchase(purchase);
+        if (purchase.getDetails() != null) {
+            purchase.getDetails().forEach(detail -> {
                 if (detail.getProduct() != null && detail.getProduct().getId() != null) {
                     Product product = productRepository.findById(detail.getProduct().getId())
                             .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
