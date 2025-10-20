@@ -3,6 +3,7 @@ package com.ferrisys.service.impl;
 import com.ferrisys.common.dto.ModuleDTO;
 import com.ferrisys.common.dto.PageResponse;
 import com.ferrisys.common.entity.user.AuthModule;
+import com.ferrisys.mapper.ModuleMapper;
 import com.ferrisys.repository.AuthUserRoleRepository;
 import com.ferrisys.repository.RoleModuleRepository;
 import com.ferrisys.repository.RoleRepository;
@@ -23,6 +24,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final RoleModuleRepository roleModuleRepository;
     private final JWTUtil jwtUtil;
     private final FeatureFlagService featureFlagService;
+    private final ModuleMapper moduleMapper;
 
     @Override
     public User getAuthUser(String username) {
@@ -170,17 +173,14 @@ public class UserServiceImpl implements UserService {
 
         Page<AuthModule> result = roleModuleRepository.findModulesByRoleId(
                 role.getRole().getId(), PageRequest.of(page, size));
-        List<ModuleDTO> content = result.getContent().stream()
+        List<AuthModule> filteredModules = result.getContent().stream()
                 .filter(module -> featureFlagService.enabled(user.getId(), module.getName()))
-                .map(m -> ModuleDTO.builder()
-                        .id(m.getId())
-                        .name(m.getName())
-                        .description(m.getDescription())
-                        .status(m.getStatus())
-                        .build())
                 .toList();
-        return new PageResponse<>(content, result.getTotalPages(), result.getTotalElements(),
-                result.getNumber(), result.getSize());
+        Page<ModuleDTO> pageDto = new PageImpl<>(
+                moduleMapper.toDtoList(filteredModules),
+                result.getPageable(),
+                result.getTotalElements());
+        return PageResponse.from(pageDto);
     }
 
 }
