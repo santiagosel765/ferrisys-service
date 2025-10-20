@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import java.util.UUID;
 import java.util.List;
+import java.util.ArrayList;
 import java.time.LocalDate;
 
 import java.io.Serializable;
@@ -33,13 +34,14 @@ public class Quote extends Auditable implements Serializable {
     private String description;
 
     @Column(name = "quote_date")
-    private java.time.LocalDate date;
+    private LocalDate date;
 
     @Column
     private BigDecimal total;
 
+    @Builder.Default
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QuoteDetail> details;
+    private List<QuoteDetail> details = new ArrayList<>();
 
     @Column(nullable = false)
     private Integer status;
