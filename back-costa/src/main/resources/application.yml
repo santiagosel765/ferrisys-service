@@ -1,0 +1,35 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /ferrisys-service
+
+spring:
+  application:
+    name: ferrisys-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://db.fplxrlfojfocejmiahup.supabase.co:5432/postgres?sslmode=require
+    username: postgres
+    password: aU7U-4sWwXCje.6
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      connection-timeout: 25000
+      idle-timeout: 50000
+      max-lifetime: 1800000
+      keepalive-time: 30000
+      connection-test-query: SELECT 1
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: public
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+jwt:
+  secret: Z3nU52@93xDklq902hAs78bLcNjsL29cHSsA9kPmsJq9kdPoaVq
