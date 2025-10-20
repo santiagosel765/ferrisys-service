@@ -57,6 +57,28 @@ npx ng serve -o
 | Endpoints 404 desde frontend | Angular intenta `/inventory/category/list` | Corregir servicios (`CategoryService`, `ProductService`) para usar `/inventory/categories` y `/inventory/products`. |
 | Puerto 8081 ocupado | Arranque falla con `Address already in use` | Cambiar `SERVER_PORT` o detener proceso que ocupa el puerto. |
 
+## 4.1 Mapeo de errores
+
+El backend normaliza las respuestas de error mediante `GlobalExceptionHandler` con la siguiente estructura JSON:
+
+```json
+{
+  "timestamp": "2024-06-01T12:34:56.000Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "detalle del error",
+  "path": "/ferrisys-service/..."
+}
+```
+
+| Excepción | Código | Comentario |
+|-----------|--------|------------|
+| `MethodArgumentNotValidException`, `BadRequestException`, `IllegalArgumentException` | 400 | Se listan los campos inválidos usando Bean Validation. |
+| `ExpiredJwtException` | 401 | Respuesta estándar "Token expired" sin exponer el token original. |
+| `AccessDeniedException` | 403 | Indica falta de permisos sobre el recurso solicitado. |
+| `EntityNotFoundException`, `NotFoundException` | 404 | El recurso solicitado no existe o está inactivo. |
+| `Exception` genérica | 500 | Mensaje genérico, el detalle completo queda en logs. |
+
 # 5. Checklist pre-PR
 1. Ejecutar `./mvnw -pl back-costa test` (agregar pruebas cuando existan).
 2. Ejecutar `npm run lint/test` (cuando se configuren) en `front-costa`.
