@@ -2,8 +2,8 @@
 
 | Módulo | Backend | Frontend | Comentarios |
 |--------|---------|----------|-------------|
-| Autenticación / Roles | Sí (`AuthRestController`, `RoleController`, `ModuleController`) | Login y layout base | Backend funcional; frontend carece de guards e interceptores. |
-| Inventario (categorías, productos) | Sí (`InventoryController`) | Pantalla de categorías con datos mock y servicios `CategoryService`/`ProductService` sin integrar | Endpoints de frontend no coinciden con backend (`/list` vs `/categories`). |
+| Autenticación / Roles | Sí (`AuthRestController`, `RoleController`, `ModuleController`) | Login, `AuthInterceptor`, `PermissionGuard`, menú dinámico | Front consume `/v1/auth/modules` pero espera `string[]`; backend entrega `PageResponse<ModuleDTO>`. |
+| Inventario (categorías, productos) | Sí (`InventoryController`) con `@PreAuthorize` + feature flags | Pantalla de categorías con datos mock y servicios `CategoryService`/`ProductService` sin integrar | Front usa IDs numéricos y endpoints `GET` sin paginación; backend usa UUID y `PageResponse`. |
 | Clientes | Sí (`ClientController`) | No hay vistas dedicadas | Requiere UI CRUD. |
 | Proveedores | Sí (`ProviderController`) | No hay vistas dedicadas | Requiere UI CRUD. |
 | Compras | Sí (`PurchaseController`) | No implementado | Falta UI y consumo. |
@@ -32,10 +32,10 @@ Leyenda: ✅ disponible/planificado, ⚠️ requiere adaptación, ? por definir.
 # 3. Estrategia de feature toggles / licencias
 
 ## Backend
-- Crear configuración `modules.<nombre>.enabled=true` en `application-*.yml` y usar `@ConditionalOnProperty` en servicios/controladores opcionales.
-- Persistir licencias por cliente en tabla `module_license(tenant_id, module_id, enabled, expires_at)`.
-- Implementar `FeatureFlagService` que consulte licencias y ofrezca métodos `checkModuleEnabled("inventory")` usados en servicios y filtros.
-- Extender seguridad para añadir `GrantedAuthority` por módulo, permitiendo aplicar `@PreAuthorize("hasAuthority('MODULE_INVENTORY')")`.
+- Se exponen flags `modules.<slug>.enabled` en `application.yml` y `@ConditionalOnProperty` controla controladores (inventario, clientes, proveedores, compras, cotizaciones). 【F:back-costa/src/main/resources/application.yml†L36-L45】
+- `FeatureFlagServiceImpl` consulta `module_license` (único por `tenant_id` + `module_id`) y expone `enabled(...)` / `enabledForCurrentUser(...)`; actualmente usa `user.id` como tenant. 【F:back-costa/src/main/java/com/ferrisys/service/impl/FeatureFlagServiceImpl.java†L17-L102】
+- `CustomUserDetailsService` agrega authorities `MODULE_<SLUG>` cuando la licencia está activa, permitiendo `@PreAuthorize`. 【F:back-costa/src/main/java/com/ferrisys/config/security/CustomUserDetailsService.java†L31-L68】
+- Pendiente: exponer endpoints para administrar `module_license` y normalizar el concepto de tenant (hoy = `user.id`).
 
 ### Cómo habilitar o deshabilitar módulos
 
@@ -50,7 +50,7 @@ Leyenda: ✅ disponible/planificado, ⚠️ requiere adaptación, ? por definir.
 - Generar menú dinámico a partir de la lista (en lugar de menú hardcodeado en `MainLayoutComponent`).
 - Implementar `FeatureToggleDirective` para mostrar/ocultar componentes según permisos.
 
-> **Actualización:** El front ya consume `/v1/auth/modules` tras el login, persiste la lista en `SessionService` y usa `MenuBuilderService` + `PermissionGuard` para mostrar el menú dinámico y proteger rutas (`data.requiredModule`).
+> **Actualización:** El front invoca `/v1/auth/modules` tras el login y guarda el resultado en `SessionService`, pero debe parsear el `PageResponse<ModuleDTO>` para alimentar `MenuBuilderService`/`PermissionGuard` (hoy espera `string[]`).
 
 # 4. Próximos pasos
 

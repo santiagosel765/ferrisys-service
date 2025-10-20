@@ -16,6 +16,7 @@ flowchart LR
         Controller[REST Controllers]
         ServicesB[Domain Services]
         Security[SecurityConfig + JwtFilterRequest]
+        FeatureFlags[FeatureFlagServiceImpl]
         Repos[JPA Repositories]
     end
 
@@ -27,6 +28,8 @@ flowchart LR
     Layout -->|HTTP GET/POST CRUD| Controller
     Services -->|HttpClient| Controller
     Controller --> ServicesB --> Repos --> Tables
+    ServicesB --> FeatureFlags
+    FeatureFlags --> Repos
     Security -. valida token .-> Controller
 ```
 
@@ -78,9 +81,10 @@ sequenceDiagram
 # 5. Decisiones de seguridad
 
 - **Stateless JWT**: No se mantiene estado de sesión en el servidor; `SessionCreationPolicy.STATELESS`. 【F:back-costa/src/main/java/com/ferrisys/config/security/SecurityConfig.java†L24-L32】
-- **Filtro personalizado**: `JwtFilterRequest` valida la firma y caducidad, carga al usuario desde base de datos y rellena el `SecurityContext`. Authorities no se establecen (queda por mejorar). 【F:back-costa/src/main/java/com/ferrisys/config/security/filter/JwtFilterRequest.java†L24-L58】
-- **CORS restringido**: Solo dos orígenes permitidos (localhost:4200 y dominio de producción). 【F:back-costa/src/main/java/com/ferrisys/config/security/SecurityConfig.java†L33-L43】
-- **Contraseñas**: Se almacenan con `BCryptPasswordEncoder` en los flujos de registro y cambio de contraseña. 【F:back-costa/src/main/java/com/ferrisys/service/impl/UserServiceImpl.java†L62-L73】【F:back-costa/src/main/java/com/ferrisys/service/impl/UserServiceImpl.java†L91-L100】
+- **Filtro personalizado**: `JwtFilterRequest` valida firma/caducidad, maneja errores de token y rellena el `SecurityContext` con `UserDetails`. 【F:back-costa/src/main/java/com/ferrisys/config/security/filter/JwtFilterRequest.java†L21-L63】
+- **Authorities dinámicas**: `CustomUserDetailsService` crea authorities `ROLE_*` y `MODULE_*` basadas en `FeatureFlagService`, que consulta licencias (`module_license`) además del flag de configuración `modules.*.enabled`. 【F:back-costa/src/main/java/com/ferrisys/config/security/CustomUserDetailsService.java†L31-L68】【F:back-costa/src/main/java/com/ferrisys/service/impl/FeatureFlagServiceImpl.java†L17-L102】
+- **CORS restringido**: Solo `http://localhost:4200` y `https://clarifyerp.qbit-gt.com` tienen acceso con métodos GET/POST/PUT/DELETE/PATCH/OPTIONS. 【F:back-costa/src/main/java/com/ferrisys/config/security/SecurityConfig.java†L33-L51】
+- **Contraseñas**: Se almacenan con `BCryptPasswordEncoder` en los flujos de registro y cambio de contraseña. 【F:back-costa/src/main/java/com/ferrisys/service/impl/UserServiceImpl.java†L62-L73】【F:back-costa/src/main/java/com/ferrisys/service/impl/UserServiceImpl.java†L91-L117】
 
 # 6. Paginación, validación y logging
 
@@ -90,8 +94,8 @@ sequenceDiagram
 
 # 7. Observabilidad
 
-- **Actuator**: Solo `/actuator/health` está expuesto manualmente; no se configuró el starter Actuator completo. 【F:back-costa/src/main/java/com/ferrisys/controller/HealthController.java†L8-L12】
-- **Métricas**: No existen dashboards ni exportadores (Prometheus/Zipkin). Recomendado habilitar `spring-boot-starter-actuator` y configurar endpoints seguros.
+- **Actuator**: El starter está incluido y se exponen `health` e `info` vía `management.endpoints.web.exposure.include`, pero además existe un `HealthController` custom que responde `"pong"` en `/actuator/health`, duplicando responsabilidad. 【F:back-costa/src/main/resources/application.yml†L47-L52】【F:back-costa/src/main/java/com/ferrisys/controller/HealthController.java†L7-L12】
+- **Métricas**: No existen dashboards ni exportadores (Prometheus/Zipkin). Recomendado habilitar métricas y protegerlas con seguridad basada en roles/módulos.
 - **Trazas**: No se implementa tracing distribuido.
 
 # 8. Evolución a plataforma multi-vertical
@@ -107,14 +111,14 @@ sequenceDiagram
 - **Seguridad & Licencias**: Gestión de módulos habilitados por cliente.
 
 ## Estrategia backend
-- Implementar configuración modular usando `@ConditionalOnProperty("modules.<dominio>.enabled")` para exponer beans/controladores por vertical.
-- Crear `FeatureFlagService` que consulte permisos por compañía/tenant (tabla `module_license`) y exponga helpers para servicios.
+- Ya se usa `@ConditionalOnProperty("modules.<dominio>.enabled")` para habilitar controladores (inventario, clientes, compras, etc.); extender el patrón a nuevos dominios.
+- `FeatureFlagServiceImpl` consulta `module_license` y licencias en memoria; falta incorporar noción explícita de tenant (actualmente usa `user.id`) y exponer APIs de administración de licencias.
 - Añadir `tenant_id` (UUID) a entidades o separar por esquema (por ejemplo `tenant_<id>`). Comenzar con columna y filtros por `@EntityGraph`/`@Where`.
 - Unificar `AuthUserRole` y `AuthRoleModule` con un catálogo de licencias para habilitar rutas.
 
 ## Estrategia frontend
-- Construir un `MenuBuilderService` que reciba módulos habilitados del endpoint `/v1/auth/modules` y genere menús dinámicos.
-- Implementar `CanActivateFn` o guards clásicos que validen permisos antes de entrar a cada ruta.
+- `MenuBuilderService` ya genera el menú a partir de los módulos almacenados en `SessionService`; es necesario alinear el endpoint para que entregue la estructura consumible.
+- `PermissionGuard` valida módulos pero depende de que `SessionService` reciba datos reales; completar flujo de login para transformar el `PageResponse` en la lista de slugs esperada.
 - Crear lazy modules por dominio (`catalog`, `sales`, `purchases`, etc.) y cargar solo los habilitados.
 
 ## Extensibilidad de catálogo
@@ -129,5 +133,5 @@ sequenceDiagram
 # 9. Consideraciones adicionales
 
 - **Persistencia**: Actualmente se usan búsquedas `findById().orElseThrow` sin manejo transaccional avanzado; al habilitar multi-tenant se deben añadir filtros globales.
-- **Integración frontend-backend**: Algunos endpoints en servicios Angular no coinciden con los reales; se requiere alineación antes de habilitar consumo real.
+- **Integración frontend-backend**: `AuthService.fetchEnabledModules()` hace `GET` a `/v1/auth/modules` y espera `string[]`, pero el backend expone `POST` con `PageResponse<ModuleDTO>`; `CategoryService`/`ProductService` usan IDs numéricos y rutas inexistentes. Se debe normalizar antes de habilitar consumo real. 【F:front-costa/src/app/services/auth.service.ts†L37-L46】【F:back-costa/src/main/java/com/ferrisys/controller/AuthRestController.java†L40-L52】【F:front-costa/src/app/services/category/category.service.ts†L7-L53】
 - **Despliegue**: Dockerfiles existen para ambos módulos pero no se incluye orquestación. Se recomienda definir compose/k8s para despliegue multi-servicio.

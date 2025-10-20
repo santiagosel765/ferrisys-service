@@ -13,6 +13,7 @@ Configurar mediante variables de entorno o perfiles externos:
 - `SPRING_DATASOURCE_PASSWORD`
 - `JWT_SECRET`
 - `SERVER_PORT` (opcional)
+- Opcional: copiar `back-costa/src/main/resources/application-local.yml.sample` a `application-local.yml` y reemplazar los valores `PLEASE_SET_*`.
 
 Ejemplo Linux/macOS:
 ```bash
@@ -27,6 +28,7 @@ export JWT_SECRET="<clave de 32+ chars>"
 ## 2.1 Backend
 ```bash
 cd back-costa
+./mvnw flyway:migrate
 ./mvnw clean spring-boot:run
 ```
 - Verificar salud en `http://localhost:8081/ferrisys-service/actuator/health`.
@@ -42,9 +44,9 @@ npx ng serve -o
 - Asegurar que `src/environments/environment.ts` apunte al backend correcto.
 
 # 3. Migraciones y datos
-- Las migraciones se administran con Flyway. Ejecutar siempre `./mvnw flyway:migrate` antes de iniciar el backend en un entorno nuevo.
-- Orden actual: `V1__baseline.sql` (crea esquema completo) seguido de `V2__seed_base.sql` (carga estados, roles y módulos base).
-- Los seeds respetan los UUID fijos definidos en `DefaultRole` y `DefaultUserStatus`.
+- Las migraciones se administran con Flyway. Ejecutar `./mvnw flyway:migrate` (o dejar que Spring lo haga al arrancar) cuando la base esté vacía.
+- Orden actual: `V1__baseline.sql` (crea esquema completo), `V2__seed_base.sql` (carga estados, roles, módulos y relación rol-módulo) y `V3__module_license.sql` (tabla/licencias + trigger `updated_at`).
+- Los seeds respetan los UUID fijos definidos en `DefaultRole` y `DefaultUserStatus`; añade registros en `module_license` para habilitar módulos por `tenant_id` (usar `auth_user.id` mientras no exista tabla de tenant).
 
 # 4. Troubleshooting
 
@@ -56,6 +58,7 @@ npx ng serve -o
 | Fallo de conexión DB | Stacktrace `Connection refused` o `sslmode` | Validar credenciales y que la base acepte SSL. Ajustar `SPRING_DATASOURCE_URL`. |
 | Endpoints 404 desde frontend | Angular intenta `/inventory/category/list` | Corregir servicios (`CategoryService`, `ProductService`) para usar `/inventory/categories` y `/inventory/products`. |
 | Puerto 8081 ocupado | Arranque falla con `Address already in use` | Cambiar `SERVER_PORT` o detener proceso que ocupa el puerto. |
+| `/v1/auth/modules` devuelve 405/400 | Front hace `GET` sin body y espera `string[]` | Cambiar a `POST` con `page/size` y mapear el `PageResponse<ModuleDTO>` a un arreglo de `name`. |
 
 ## 4.1 Mapeo de errores
 

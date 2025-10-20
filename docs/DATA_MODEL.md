@@ -10,6 +10,7 @@
 | `auth_module` | `id`, `name` único, `description`, `status` | Catálogo de módulos habilitables |
 | `auth_user_role` | `id`, `auth_user_id`, `auth_role_id`, `status` | FK a usuario y rol |
 | `auth_role_module` | `id`, `auth_role_id`, `auth_module_id`, `status` | FK a rol y módulo |
+| `module_license` | `id`, `tenant_id`, `module_id`, `enabled`, `expires_at`, timestamps | FK `module_id` → `auth_module.id`; índice único `(tenant_id, module_id)` |
 
 ## 1.2 Esquema de inventario
 
@@ -158,8 +159,8 @@ erDiagram
 - No existen índices explícitos para búsquedas por `username`, `email`, `status`; recomendable crear índices btree.
 
 # 4. Recomendaciones de migraciones
-- Incorporar **Flyway** y generar migración baseline con todo el esquema actual (tablas, constraints, índices únicos).
-- Crear seeds iniciales para `user_status`, `auth_role`, `auth_module`, `auth_role_module` basados en los UUID hardcodeados (`DefaultRole`, `DefaultUserStatus`).
+- Ya se usa **Flyway** con `V1__baseline.sql` (esquema completo), `V2__seed_base.sql` (catálogos iniciales) y `V3__module_license.sql` (tabla de licencias). Mantener nuevas alteraciones como migraciones incrementales.
+- Ampliar seeds para crear licencias de ejemplo por módulo/tenant (tabla `module_license`) alineadas con los UUID de `DefaultRole`/`DefaultUserStatus`.
 - Añadir columnas `created_by` y `updated_by`, respaldadas por auditoría Spring Security (`AuditorAware`).
 - Definir restricciones `ON DELETE` apropiadas (actualmente rely on cascada JPA). Ej.: `ON DELETE CASCADE` en detalles de compras/cotizaciones.
 - Evaluar índice compuesto `(status, name)` en catálogos y `(status, provider_id)` en compras para acelerar filtros activos.

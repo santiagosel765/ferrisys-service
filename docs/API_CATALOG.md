@@ -45,7 +45,7 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
 - **Errores**: 400 si contraseñas no coinciden, 404 usuario inexistente.
 
 ### 1.4 POST `/v1/auth/modules`
-- **Descripción**: Lista módulos asociados al usuario autenticado.
+- **Descripción**: Lista módulos asociados al usuario autenticado. El método exige JWT y lee módulos habilitados según licencias; el frontend actual realiza `GET` y espera `string[]`, por lo que debe adaptarse al `PageResponse<ModuleDTO>` real.
 - **Query params**: `page` (0), `size` (10).
 - **Respuesta 200**:
   ```json
@@ -74,14 +74,17 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
   ```
 - **Respuesta**: `200 OK` sin cuerpo.
 - **Errores**: 404 módulo inexistente en actualización.
+- **Seguridad**: Solo requiere JWT; no hay `@PreAuthorize`, por lo que se recomienda añadir validación adicional.
 
 ### 2.2 GET `/v1/modules/list`
 - **Query params**: `page`, `size`.
 - **Respuesta**: `PageResponse<ModuleDTO>`.
+- **Seguridad**: JWT obligatorio, sin restricciones por módulo/rol.
 
 ### 2.3 POST `/v1/modules/disable`
 - **Query param**: `id` (UUID).
 - **Respuesta**: `200 OK` sin cuerpo.
+- **Seguridad**: JWT obligatorio, sin restricciones adicionales.
 
 ## 3. Roles (`RoleController`)
 
@@ -101,13 +104,16 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
   "Rol procesado correctamente"
   ```
 - **Notas**: Los módulos asociados existentes se reemplazan.
+- **Seguridad**: JWT obligatorio, no hay `@PreAuthorize`; cualquier usuario autenticado puede crear/editar roles.
 
 ### 3.2 POST `/v1/roles/list`
 - **Descripción**: Retorna `PageResponse<RoleDTO>`.
+- **Seguridad**: JWT obligatorio, sin filtros adicionales.
 
 ### 3.3 POST `/v1/roles/disable`
 - **Query param**: `roleId`.
 - **Respuesta**: `"Rol deshabilitado"`.
+- **Seguridad**: Solo JWT.
 
 ## 4. Inventario (`InventoryController`)
 
@@ -124,12 +130,15 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
   ```
 - **Respuesta**: `200 OK` sin cuerpo.
 - **Errores**: 404 si `parentCategoryId` no existe.
+- **Seguridad**: `@PreAuthorize("@featureFlagService.enabledForCurrentUser('inventory') and (hasAuthority('MODULE_INVENTORY') or hasRole('ADMIN'))")`.
 
 ### 4.2 POST `/v1/inventory/category/disable`
 - **Query param**: `id`.
+- **Seguridad**: Misma expresión de feature flag / autoridad que el guardado.
 
 ### 4.3 GET `/v1/inventory/categories`
 - **Respuesta**: `PageResponse<CategoryDTO>`.
+- **Seguridad**: Requiere módulo `INVENTORY` o rol `ADMIN` con flag activo.
 
 ### 4.4 POST `/v1/inventory/product/save`
 - **Body**:
@@ -144,12 +153,15 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
   }
   ```
 - **Errores**: 404 si la categoría no existe.
+- **Seguridad**: Igual que categorías.
 
 ### 4.5 POST `/v1/inventory/product/disable`
 - **Query param**: `id`.
+- **Seguridad**: Igual que categorías.
 
 ### 4.6 GET `/v1/inventory/products`
 - **Respuesta**: `PageResponse<ProductDTO>` con `categoryId` dentro de cada DTO.
+- **Seguridad**: Igual que categorías.
 
 ## 5. Clientes (`ClientController`)
 
@@ -165,12 +177,15 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
     "status": 1
   }
   ```
+- **Seguridad**: `@PreAuthorize("@featureFlagService.enabledForCurrentUser('clients')")`.
 
 ### 5.2 POST `/v1/clients/disable`
 - **Query param**: `id`.
+- **Seguridad**: Igual que guardado.
 
 ### 5.3 GET `/v1/clients/list`
 - **Respuesta**: `PageResponse<ClientDTO>`.
+- **Seguridad**: Igual que guardado.
 
 ## 6. Proveedores (`ProviderController`)
 
@@ -187,12 +202,15 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
     "status": 1
   }
   ```
+- **Seguridad**: `@PreAuthorize("@featureFlagService.enabledForCurrentUser('providers')")`.
 
 ### 6.2 POST `/v1/providers/disable`
 - **Query param**: `id`.
+- **Seguridad**: Igual que guardado.
 
 ### 6.3 GET `/v1/providers/list`
 - **Respuesta**: `PageResponse<ProviderDTO>`.
+- **Seguridad**: Igual que guardado.
 
 ## 7. Compras (`PurchaseController`)
 
@@ -212,12 +230,15 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
   }
   ```
 - **Notas**: Los detalles existentes se eliminan y se recrean en cada guardado. 【F:back-costa/src/main/java/com/ferrisys/service/business/impl/PurchaseServiceImpl.java†L38-L71】
+- **Seguridad**: `@PreAuthorize("@featureFlagService.enabledForCurrentUser('purchases')")`.
 
 ### 7.2 POST `/v1/purchases/disable`
 - **Query param**: `id`.
+- **Seguridad**: Igual que guardado.
 
 ### 7.3 GET `/v1/purchases/list`
 - **Respuesta**: `PageResponse<PurchaseDTO>` con detalles anidados (`productId`, `quantity`, `unitPrice`).
+- **Seguridad**: Igual que guardado.
 
 ## 8. Cotizaciones (`QuoteController`)
 
@@ -237,21 +258,21 @@ Todos los endpoints comparten el prefijo `/ferrisys-service` y retornan/aceptan 
   }
   ```
 - **Notas**: Se reemplazan los detalles igual que en compras. 【F:back-costa/src/main/java/com/ferrisys/service/business/impl/QuoteServiceImpl.java†L38-L71】
+- **Seguridad**: `@PreAuthorize("@featureFlagService.enabledForCurrentUser('quotes')")`.
 
 ### 8.2 POST `/v1/quotes/disable`
 - **Query param**: `id`.
+- **Seguridad**: Igual que guardado.
 
 ### 8.3 GET `/v1/quotes/list`
 - **Respuesta**: `PageResponse<QuoteDTO>` con detalles.
+- **Seguridad**: Igual que guardado.
 
 ## 9. Salud (`HealthController`)
 
 ### 9.1 GET `/actuator/health`
-- **Descripción**: Endpoint simple para chequeo de disponibilidad.
-- **Respuesta 200**:
-  ```json
-  "pong"
-  ```
+- **Descripción**: Endpoint simple para chequeo de disponibilidad. Con el controlador custom responde texto plano `"pong"`; sin él, Actuator entrega JSON estándar.
+- **Respuesta 200**: `"pong"` (custom) o JSON de Actuator.
 
 ## 10. Estados de error comunes
 - `Token expired` (401): Devuelto por `JwtFilterRequest` al detectar expiración. 【F:back-costa/src/main/java/com/ferrisys/config/security/filter/JwtFilterRequest.java†L41-L46】
