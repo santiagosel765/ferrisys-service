@@ -1,6 +1,7 @@
 package com.ferrisys.mapper;
 
 import com.ferrisys.common.dto.QuoteDTO;
+import com.ferrisys.common.entity.business.Client;
 import com.ferrisys.common.entity.business.Quote;
 import com.ferrisys.mapper.support.IdMappingSupport;
 import org.mapstruct.AfterMapping;
@@ -20,12 +21,12 @@ import java.util.List;
 )
 public interface QuoteMapper extends IdMappingSupport {
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "client.id", source = "clientId")
+    @Mapping(target = "id", expression = "java(toUuid(dto.id()))")
+    @Mapping(target = "client", expression = "java(mapClient(dto.clientId()))")
     Quote toEntity(QuoteDTO dto);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "clientId", source = "client.id")
+    @Mapping(target = "id", expression = "java(fromUuid(entity.getId()))")
+    @Mapping(target = "clientId", expression = "java(fromClient(entity.getClient()))")
     QuoteDTO toDto(Quote entity);
 
     List<QuoteDTO> toDtoList(List<Quote> entities);
@@ -35,5 +36,18 @@ public interface QuoteMapper extends IdMappingSupport {
         if (quote.getDetails() != null) {
             quote.getDetails().forEach(detail -> detail.setQuote(quote));
         }
+    }
+
+    default Client mapClient(String clientId) {
+        if (clientId == null || clientId.isBlank()) {
+            return null;
+        }
+        Client client = new Client();
+        client.setId(toUuid(clientId));
+        return client;
+    }
+
+    default String fromClient(Client client) {
+        return client == null ? null : fromUuid(client.getId());
     }
 }

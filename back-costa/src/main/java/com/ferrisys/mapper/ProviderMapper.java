@@ -17,10 +17,10 @@ import java.util.List;
 )
 public interface ProviderMapper extends IdMappingSupport {
 
-    @Mapping(target = "id", source = "id")
+    @Mapping(target = "id", expression = "java(toUuid(dto.id()))")
     Provider toEntity(ProviderDTO dto);
 
-    @Mapping(target = "id", source = "id")
+    @Mapping(target = "id", expression = "java(fromUuid(entity.getId()))")
     ProviderDTO toDto(Provider entity);
 
     List<ProviderDTO> toDtoList(List<Provider> entities);
