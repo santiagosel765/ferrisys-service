@@ -37,6 +37,13 @@ Leyenda: ✅ disponible/planificado, ⚠️ requiere adaptación, ? por definir.
 - Implementar `FeatureFlagService` que consulte licencias y ofrezca métodos `checkModuleEnabled("inventory")` usados en servicios y filtros.
 - Extender seguridad para añadir `GrantedAuthority` por módulo, permitiendo aplicar `@PreAuthorize("hasAuthority('MODULE_INVENTORY')")`.
 
+### Cómo habilitar o deshabilitar módulos
+
+1. **A nivel de despliegue**: en el `application.yml` (o `application-<profile>.yml`) ajustar la propiedad `modules.<slug>.enabled`. Por ejemplo, definir `modules.inventory.enabled=false` evita que Spring exponga los controladores y bloquea cualquier autorización en runtime.
+2. **A nivel de tenant**: insertar o actualizar un registro en `module_license` con el `tenant_id` (usar `user_id` como proxy temporal) y el `module_id`. Establecer `enabled=false` o una `expires_at` anterior a la fecha actual revoca el acceso.
+3. **Verificación**: el backend usa `FeatureFlagService.enabled(tenantId, moduleSlug)` y `enabledForCurrentUser(moduleSlug)` en los `@PreAuthorize`, garantizando que un módulo sólo responda 200 cuando ambas condiciones (propiedad + licencia vigente) se cumplen.
+4. **Lista para frontend**: el endpoint `/v1/auth/modules` consulta las licencias activas para el usuario autenticado, por lo que el cliente puede construir la UI en función de la misma fuente de verdad.
+
 ## Frontend
 - Consumir `/v1/auth/modules` tras login y almacenar lista de módulos habilitados.
 - Crear `PermissionGuard` que verifique si la ruta solicitada está en módulos habilitados.

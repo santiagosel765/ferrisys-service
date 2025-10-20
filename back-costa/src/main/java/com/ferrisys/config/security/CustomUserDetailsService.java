@@ -6,10 +6,12 @@ import com.ferrisys.common.entity.user.Role;
 import com.ferrisys.common.entity.user.User;
 import com.ferrisys.common.exception.impl.NotFoundException;
 import com.ferrisys.repository.RoleModuleRepository;
+import com.ferrisys.service.FeatureFlagService;
 import com.ferrisys.service.UserService;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,6 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserService userService;
     private final RoleModuleRepository roleModuleRepository;
+    private final FeatureFlagService featureFlagService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -40,7 +43,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
             if (role != null && role.getId() != null) {
                 roleModuleRepository.findModulesByRoleId(role.getId(), Pageable.unpaged())
-                        .forEach(module -> addModuleAuthority(authorities, module));
+                        .forEach(module -> addModuleAuthority(authorities, module, user.getId()));
             }
 
             return org.springframework.security.core.userdetails.User.builder()
@@ -57,8 +60,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
     }
 
-    private void addModuleAuthority(Set<GrantedAuthority> authorities, AuthModule module) {
-        if (module != null && module.getName() != null && !module.getName().isBlank()) {
+    private void addModuleAuthority(Set<GrantedAuthority> authorities, AuthModule module, UUID tenantId) {
+        if (module != null && module.getName() != null && !module.getName().isBlank()
+                && featureFlagService.enabled(tenantId, module.getName())) {
             authorities.add(new SimpleGrantedAuthority("MODULE_" + normalize(module.getName())));
         }
     }
