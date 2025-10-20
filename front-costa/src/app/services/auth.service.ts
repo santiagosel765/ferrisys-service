@@ -1,8 +1,8 @@
 /* auth.service.ts */
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+
+import { ApiService } from '../core/services/api.service';
 
 // Interfaces para el tipado
 export interface LoginRequest {
@@ -21,8 +21,7 @@ export interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl;
-  private http = inject(HttpClient);
+  private readonly api = inject(ApiService);
 
   constructor() { }
 
@@ -32,18 +31,13 @@ export class AuthService {
    * @returns Observable con la respuesta del servidor
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    const url = `${this.apiUrl}auth/login`;
-    
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    });
+    const endpoint = '/v1/auth/login';
 
     // Log para debug - quitar en producción
-    console.log('URL de login:', url);
+    console.log('URL de login:', endpoint);
     console.log('Credenciales enviadas:', credentials);
 
-    return this.http.post<LoginResponse>(url, credentials, { headers });
+    return this.api.post<LoginResponse>(endpoint, credentials);
   }
 
   /**

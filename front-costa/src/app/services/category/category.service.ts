@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+
+import { ApiService } from '../../core/services/api.service';
 
 // Interfaces para el tipado
 export interface Category {
@@ -21,24 +21,9 @@ export interface CategoryResponse {
   providedIn: 'root'
 })
 export class CategoryService {
-  private apiUrl = environment.apiUrl;
-  private http = inject(HttpClient);
+  private readonly api = inject(ApiService);
 
   constructor() { }
-
-  /**
-   * Obtiene los headers con el token de autorización
-   * @returns Headers con Content-Type y Authorization
-   */
-  private getHeaders(): HttpHeaders {
-    const token = sessionStorage.getItem('authToken');
-    
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
 
   /**
    * Guardar una categoría (crear o actualizar según tenga ID o no)
@@ -46,14 +31,13 @@ export class CategoryService {
    * @returns Observable con la respuesta del servidor
    */
   saveCategory(category: Category): Observable<CategoryResponse> {
-    const url = `${this.apiUrl}inventory/category/save`;
-    const headers = this.getHeaders();
+    const endpoint = '/v1/inventory/category/save';
 
     // Log para debug - quitar en producción
-    console.log('URL de guardado:', url);
+    console.log('URL de guardado:', endpoint);
     console.log('Datos enviados:', category);
 
-    return this.http.post<CategoryResponse>(url, category, { headers });
+    return this.api.post<CategoryResponse>(endpoint, category);
   }
 
   /**
@@ -61,12 +45,11 @@ export class CategoryService {
    * @returns Observable con la lista de categorías
    */
   getCategories(): Observable<CategoryResponse> {
-    const url = `${this.apiUrl}inventory/category/list`;
-    const headers = this.getHeaders();
+    const endpoint = '/v1/inventory/categories';
 
-    console.log('URL de obtención:', url);
+    console.log('URL de obtención:', endpoint);
 
-    return this.http.get<CategoryResponse>(url, { headers });
+    return this.api.get<CategoryResponse>(endpoint);
   }
 
   /**
@@ -75,11 +58,10 @@ export class CategoryService {
    * @returns Observable con la respuesta del servidor
    */
   disableCategory(id: number): Observable<CategoryResponse> {
-    const url = `${this.apiUrl}inventory/category/disable?id=${id}`;
-    const headers = this.getHeaders();
+    const endpoint = `/v1/inventory/category/disable?id=${id}`;
 
-    console.log('URL de deshabilitación:', url);
+    console.log('URL de deshabilitación:', endpoint);
 
-    return this.http.post<CategoryResponse>(url, null, { headers });
+    return this.api.post<CategoryResponse>(endpoint, null);
   }
 }

@@ -2,6 +2,24 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.13.
 
+## HTTP client & authentication interceptor
+
+All HTTP calls go through the shared `ApiService`, which prefixes requests with the value of `environment.apiBaseUrl` (default `http://localhost:8081/ferrisys-service`). The `AuthInterceptor` automatically injects the `Authorization: Bearer <token>` header for every request except the authentication endpoints (`/v1/auth/login` and `/v1/auth/register`).
+
+To keep the session active make sure the login flow stores the JWT token in `sessionStorage` (or `localStorage`). The interceptor reads from `sessionStorage` first and falls back to `localStorage` when present.
+
+When you need to call a protected endpoint, inject `ApiService` in your Angular service/component and use the `get`, `post`, `put` or `delete` helpers. Example:
+
+```ts
+import { ApiService } from './core/services/api.service';
+
+constructor(private readonly api: ApiService) {}
+
+loadProducts() {
+  return this.api.get('/v1/inventory/products');
+}
+```
+
 ## Development server
 
 To start a local development server, run:

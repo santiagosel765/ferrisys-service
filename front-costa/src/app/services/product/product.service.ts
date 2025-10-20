@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+
+import { ApiService } from '../../core/services/api.service';
 
 // Interfaces para el tipado
 export interface Product {
@@ -22,24 +22,9 @@ export interface ProductResponse {
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = environment.apiUrl;
-  private http = inject(HttpClient);
+  private readonly api = inject(ApiService);
 
   constructor() { }
-
-  /**
-   * Obtiene los headers con el token de autorización
-   * @returns Headers con Content-Type y Authorization
-   */
-  private getHeaders(): HttpHeaders {
-    const token = sessionStorage.getItem('authToken');
-    
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`
-    });
-  }
 
   /**
    * Guardar un producto (crear o actualizar según tenga ID o no)
@@ -47,14 +32,13 @@ export class ProductService {
    * @returns Observable con la respuesta del servidor
    */
   saveProduct(product: Product): Observable<ProductResponse> {
-    const url = `${this.apiUrl}inventory/product/save`;
-    const headers = this.getHeaders();
+    const endpoint = '/v1/inventory/product/save';
 
     // Log para debug - quitar en producción
-    console.log('URL de guardado:', url);
+    console.log('URL de guardado:', endpoint);
     console.log('Datos enviados:', product);
 
-    return this.http.post<ProductResponse>(url, product, { headers });
+    return this.api.post<ProductResponse>(endpoint, product);
   }
 
   /**
@@ -62,12 +46,11 @@ export class ProductService {
    * @returns Observable con la lista de productos
    */
   getProducts(): Observable<ProductResponse> {
-    const url = `${this.apiUrl}inventory/product/list`;
-    const headers = this.getHeaders();
+    const endpoint = '/v1/inventory/products';
 
-    console.log('URL de obtención:', url);
+    console.log('URL de obtención:', endpoint);
 
-    return this.http.get<ProductResponse>(url, { headers });
+    return this.api.get<ProductResponse>(endpoint);
   }
 
   /**
@@ -76,11 +59,10 @@ export class ProductService {
    * @returns Observable con la respuesta del servidor
    */
   disableProduct(id: number): Observable<ProductResponse> {
-    const url = `${this.apiUrl}inventory/product/disable?id=${id}`;
-    const headers = this.getHeaders();
+    const endpoint = `/v1/inventory/product/disable?id=${id}`;
 
-    console.log('URL de deshabilitación:', url);
+    console.log('URL de deshabilitación:', endpoint);
 
-    return this.http.post<ProductResponse>(url, null, { headers });
+    return this.api.post<ProductResponse>(endpoint, null);
   }
 }
