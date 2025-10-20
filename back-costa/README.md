@@ -55,3 +55,14 @@ export JWT_SECRET="CHANGEME_32CHARS"
 
 For local development you can copy [`application-local.yml.sample`](src/main/resources/application-local.yml.sample) to `application-local.yml` and adjust the values according to your environment.
 
+---
+
+## 🚀 Local development
+
+The repository includes helper scripts that start the backend and frontend together so you can develop against both modules at the same time:
+
+- **Bash / Unix shells**: run `../scripts/run-all.sh` from this directory (or `scripts/run-all.sh` from the repository root).
+- **Windows PowerShell**: run `..\scripts\run-all.ps1` from this directory (or `scripts\run-all.ps1` from the repository root).
+
+Both scripts install missing frontend dependencies, launch `./mvnw spring-boot:run` for this service, and start the Angular dev server. Use `Ctrl+C` to stop both processes.
+
