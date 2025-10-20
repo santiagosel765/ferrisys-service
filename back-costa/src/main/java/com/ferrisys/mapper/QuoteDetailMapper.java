@@ -4,6 +4,7 @@ import com.ferrisys.common.dto.QuoteDetailDTO;
 import com.ferrisys.common.entity.business.QuoteDetail;
 import com.ferrisys.common.entity.inventory.Product;
 import com.ferrisys.mapper.support.IdMappingSupport;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -12,7 +13,8 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        builder = @Builder(disableBuilder = true)
 )
 public interface QuoteDetailMapper extends IdMappingSupport {
 

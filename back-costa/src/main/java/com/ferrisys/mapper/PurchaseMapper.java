@@ -5,6 +5,7 @@ import com.ferrisys.common.entity.business.Provider;
 import com.ferrisys.common.entity.business.Purchase;
 import com.ferrisys.mapper.support.IdMappingSupport;
 import org.mapstruct.AfterMapping;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -17,7 +18,8 @@ import java.util.List;
         componentModel = "spring",
         uses = {PurchaseDetailMapper.class},
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        builder = @Builder(disableBuilder = true)
 )
 public interface PurchaseMapper extends IdMappingSupport {
 

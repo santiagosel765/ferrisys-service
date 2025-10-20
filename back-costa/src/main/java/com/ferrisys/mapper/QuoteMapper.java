@@ -5,6 +5,7 @@ import com.ferrisys.common.entity.business.Client;
 import com.ferrisys.common.entity.business.Quote;
 import com.ferrisys.mapper.support.IdMappingSupport;
 import org.mapstruct.AfterMapping;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -17,7 +18,8 @@ import java.util.List;
         componentModel = "spring",
         uses = {QuoteDetailMapper.class},
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        builder = @Builder(disableBuilder = true)
 )
 public interface QuoteMapper extends IdMappingSupport {
 
