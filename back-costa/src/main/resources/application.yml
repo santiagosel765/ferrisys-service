@@ -34,6 +34,18 @@ spring:
 jwt:
   secret: ${JWT_SECRET:PLEASE_SET_JWT_SECRET}
 
+modules:
+  inventory:
+    enabled: true
+  purchases:
+    enabled: true
+  clients:
+    enabled: true
+  providers:
+    enabled: true
+  quotes:
+    enabled: true
+
 management:
   endpoints:
     web:

@@ -8,6 +8,7 @@ import com.ferrisys.repository.RoleModuleRepository;
 import com.ferrisys.repository.RoleRepository;
 import com.ferrisys.repository.UserRepository;
 import com.ferrisys.repository.UserStatusRepository;
+import com.ferrisys.service.FeatureFlagService;
 import com.ferrisys.service.UserService;
 import com.ferrisys.common.dto.AuthResponse;
 import com.ferrisys.common.dto.RegisterRequest;
@@ -42,6 +43,7 @@ public class UserServiceImpl implements UserService {
     private final UserStatusRepository userStatusRepository ;
     private final RoleModuleRepository roleModuleRepository;
     private final JWTUtil jwtUtil;
+    private final FeatureFlagService featureFlagService;
 
     @Override
     public User getAuthUser(String username) {
@@ -169,6 +171,7 @@ public class UserServiceImpl implements UserService {
         Page<AuthModule> result = roleModuleRepository.findModulesByRoleId(
                 role.getRole().getId(), PageRequest.of(page, size));
         List<ModuleDTO> content = result.getContent().stream()
+                .filter(module -> featureFlagService.enabled(user.getId(), module.getName()))
                 .map(m -> ModuleDTO.builder()
                         .id(m.getId())
                         .name(m.getName())
