@@ -22,13 +22,18 @@ loadProducts() {
 
 ## Development server
 
-To start a local development server, run:
+To start the Angular development server on its own, run:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Alternatively, you can start both the Angular app and the Spring Boot backend together using the helper scripts located in `../scripts/`:
+
+- `../scripts/run-all.sh` for Bash or other Unix-compatible shells
+- `..\scripts\run-all.ps1` for Windows PowerShell
+
+Both scripts install dependencies (via `npm ci`) and then run `npx ng serve` so the UI is available at `http://localhost:4200/`. The application automatically reloads whenever you modify the source files.
 
 ## Code scaffolding
 
