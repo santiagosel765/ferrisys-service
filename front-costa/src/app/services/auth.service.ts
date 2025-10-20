@@ -41,6 +41,14 @@ export class AuthService {
   }
 
   /**
+   * Obtiene los módulos habilitados para el usuario autenticado.
+   */
+  fetchEnabledModules(): Observable<string[]> {
+    const endpoint = '/v1/auth/modules';
+    return this.api.get<string[]>(endpoint);
+  }
+
+  /**
    * Método para guardar el token en localStorage
    * @param token - Token JWT a guardar
    */

@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, LoginRequest } from '../../services/auth.service';
+import { SessionService } from '../../services/session.service';
+import { catchError, finalize, of, switchMap, tap } from 'rxjs';
 
 // Imports de ng-zorro
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -31,6 +33,7 @@ export class LoginComponent implements OnInit {
   private router = inject(Router);
   private message = inject(NzMessageService);
   private fb = inject(FormBuilder);
+  private sessionService = inject(SessionService);
   
   loginForm!: FormGroup;
   isLoading = false;
@@ -56,37 +59,56 @@ export class LoginComponent implements OnInit {
         password: this.loginForm.get('password')?.value
       };
       
-      this.authService.login(credentials).subscribe({
-        next: (response) => {
-          console.log('Login exitoso:', response);
-          this.authService.saveToken(response.token);
-          this.message.success('¡Bienvenido!');
-          this.isLoading = false;
-          // Redirigir al dashboard o página principal
-          this.router.navigate(['/main/welcome']);
-        },
-        error: (error) => {
-          console.error('Error completo:', error);
-          console.error('Status:', error.status);
-          console.error('Error body:', error.error);
-          this.isLoading = false;
-          
-          // Mostrar mensaje de error más específico
-          let errorMessage = 'Error al iniciar sesión';
-          
-          if (error.status === 401) {
-            errorMessage = 'Credenciales incorrectas';
-          } else if (error.status === 404) {
-            errorMessage = 'Servicio no encontrado';
-          } else if (error.status === 500) {
-            errorMessage = 'Error interno del servidor';
-          } else if (error.error?.message) {
-            errorMessage = error.error.message;
-          }
-          
-          this.message.error(errorMessage);
-        }
-      });
+      this.authService
+        .login(credentials)
+        .pipe(
+          tap((response) => {
+            console.log('Login exitoso:', response);
+            this.authService.saveToken(response.token);
+          }),
+          switchMap(() =>
+            this.authService.fetchEnabledModules().pipe(
+              catchError((modulesError) => {
+                console.error('No se pudieron cargar los módulos:', modulesError);
+                this.message.warning(
+                  'No se pudieron cargar los módulos habilitados. Se aplicarán restricciones por defecto.',
+                );
+                return of([]);
+              }),
+            ),
+          ),
+          finalize(() => {
+            this.isLoading = false;
+          }),
+        )
+        .subscribe({
+          next: (modules) => {
+            this.sessionService.setModules(modules);
+            this.message.success('¡Bienvenido!');
+            // Redirigir al dashboard o página principal
+            this.router.navigate(['/main/welcome']);
+          },
+          error: (error) => {
+            console.error('Error completo:', error);
+            console.error('Status:', error.status);
+            console.error('Error body:', error.error);
+
+            // Mostrar mensaje de error más específico
+            let errorMessage = 'Error al iniciar sesión';
+
+            if (error.status === 401) {
+              errorMessage = 'Credenciales incorrectas';
+            } else if (error.status === 404) {
+              errorMessage = 'Servicio no encontrado';
+            } else if (error.status === 500) {
+              errorMessage = 'Error interno del servidor';
+            } else if (error.error?.message) {
+              errorMessage = error.error.message;
+            }
+
+            this.message.error(errorMessage);
+          },
+        });
     } else {
       // Marcar todos los campos como tocados para mostrar errores
       Object.values(this.loginForm.controls).forEach(control => {

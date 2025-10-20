@@ -1,6 +1,7 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
+import { PermissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
   // 🔑 Login completamente independiente
@@ -20,14 +21,20 @@ export const routes: Routes = [
       },
       {
         path: 'categories',  // 🆕 Rutas de categorías
+        canActivate: [PermissionGuard],
+        data: { requiredModule: 'INVENTORY' },
         loadChildren: () => import('./pages/categories/categories.routes').then(m => m.CATEGORIES_ROUTES)
       },
       {
         path: 'products',  // 🆕 Para el futuro
+        canActivate: [PermissionGuard],
+        data: { requiredModule: 'INVENTORY' },
         loadChildren: () => import('./pages/products/products.routes').then(m => m.PRODUCTS_ROUTES)
       },
       {
         path: 'inventory',  // 🆕 Para el futuro
+        canActivate: [PermissionGuard],
+        data: { requiredModule: 'INVENTORY' },
         loadChildren: () => import('./pages/inventario/inventory.routes').then(m => m.INVENTORY_ROUTES)
       },
       /*
