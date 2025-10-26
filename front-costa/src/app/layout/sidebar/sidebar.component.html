@@ -1,0 +1,39 @@
+<ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="collapsed">
+  <li nz-menu-item nzMatchRouter>
+    <a [routerLink]="['/main', 'welcome']">
+      <nz-icon nzType="home"></nz-icon>
+      <span>Bienvenido</span>
+    </a>
+  </li>
+
+  <li nz-menu-divider></li>
+
+  <ng-container *ngIf="loading$ | async; else modulesList">
+    <li nz-menu-item nzDisabled class="loading-item">
+      <nz-spin nzSize="small"></nz-spin>
+      <span>Cargando módulos...</span>
+    </li>
+  </ng-container>
+
+  <ng-template #modulesList>
+    <ng-container *ngIf="modules$ | async as modules">
+      <ng-container *ngFor="let module of modules; trackBy: trackByModule">
+        <li nz-menu-item nzMatchRouter>
+          <a [routerLink]="['/main', MODULE_ROUTE_MAP[module.name].path]">
+            <nz-icon [nzType]="MODULE_ROUTE_MAP[module.name].icon"></nz-icon>
+            <span>{{ MODULE_ROUTE_MAP[module.name].label || module.description }}</span>
+          </a>
+        </li>
+      </ng-container>
+    </ng-container>
+  </ng-template>
+
+  <li nz-menu-divider></li>
+
+  <li nz-menu-item nzMatchRouter class="container-logout">
+    <a href="/logout">
+      <nz-icon nzType="logout" nzTheme="outline"></nz-icon>
+      <span>Cerrar Sesión</span>
+    </a>
+  </li>
+</ul>

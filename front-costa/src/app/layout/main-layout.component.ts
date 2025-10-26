@@ -1,20 +1,15 @@
 // src/app/layouts/main-layout/main-layout.component.ts
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-
-import { MenuBuilderService, MenuItemConfig, MenuSection } from '../core/services/menu-builder.service';
-import { SessionService } from '../services/session.service';
+import { SidebarComponent } from './sidebar/sidebar.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet, NzIconModule, NzLayoutModule, NzMenuModule],
+  imports: [CommonModule, RouterOutlet, NzIconModule, NzLayoutModule, SidebarComponent],
   template: `
     <nz-layout class="app-layout">
   <nz-sider class="menu-sidebar"
@@ -30,40 +25,7 @@ import { SessionService } from '../services/session.service';
         <h1 [class.hidden]="isCollapsed">Qbit-SasS</h1>
       </div>
     </div>
-
-    <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
-      <ng-container *ngIf="menuSections$ | async as sections">
-        <ng-container *ngFor="let section of sections; trackBy: trackBySection">
-          <li nz-submenu [nzTitle]="section.title" [nzIcon]="section.icon" [nzOpen]="section.openByDefault">
-            <ul>
-              <li
-                nz-menu-item
-                nzMatchRouter
-                *ngFor="let item of section.items; trackBy: trackByItem"
-              >
-                <a [routerLink]="item.route">
-                  <nz-icon [nzType]="item.icon"></nz-icon>
-                  <span>{{ item.label }}</span>
-                </a>
-              </li>
-            </ul>
-          </li>
-        </ng-container>
-
-        <li nz-menu-divider *ngIf="sections.length"></li>
-      </ng-container>
-
-      <li nz-menu-item nzMatchRouter class="container-logout">
-
-          <a href="/logout">
-            <nz-icon nzType="logout" nzTheme="outline" />
-            <span>Cerrar Sesión</span>
-          </a>
-      </li>
-
-    </ul>
-
-    
+    <app-sidebar [collapsed]="isCollapsed"></app-sidebar>
   </nz-sider>
 
   <nz-layout class="layout-container">
@@ -208,22 +170,5 @@ nz-content {
 
 })
 export class MainLayoutComponent {
-  private readonly menuBuilderService = inject(MenuBuilderService);
-  private readonly sessionService = inject(SessionService);
-
-  readonly menuSections$: Observable<MenuSection[]> = this.sessionService.modules$.pipe(
-    map((modules) => this.menuBuilderService.buildMenu(modules)),
-  );
-
   isCollapsed = false;
-
-  readonly trackBySection = (_: number, section: MenuSection): string => section.title;
-
-  readonly trackByItem = (_: number, item: MenuItemConfig): string => item.route;
-
-  logout(): void {
-    // Aquí implementarías la lógica de logout
-    // Por ejemplo: this.authService.logout(); this.router.navigate(['/login']);
-    console.log('Cerrando sesión...');
-  }
 }
