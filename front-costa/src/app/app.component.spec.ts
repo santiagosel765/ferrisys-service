@@ -14,16 +14,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'ferre-SasS-project' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('ferre-SasS-project');
-  });
-
-  it('should render title', () => {
+  it('should render the sidebar logo title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, ferre-SasS-project');
+    expect(compiled.querySelector('.sidebar-logo h1')?.textContent).toContain('Qbit-SasS');
   });
 });

@@ -4,8 +4,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, LoginRequest } from '../../services/auth.service';
-import { SessionService } from '../../services/session.service';
-import { catchError, finalize, of, switchMap, tap } from 'rxjs';
+import { finalize, tap } from 'rxjs/operators';
+import { ModulesStore } from '../../core/state/modules.store';
 
 // Imports de ng-zorro
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -33,7 +33,7 @@ export class LoginComponent implements OnInit {
   private router = inject(Router);
   private message = inject(NzMessageService);
   private fb = inject(FormBuilder);
-  private sessionService = inject(SessionService);
+  private modulesStore = inject(ModulesStore);
   
   loginForm!: FormGroup;
   isLoading = false;
@@ -65,25 +65,14 @@ export class LoginComponent implements OnInit {
           tap((response) => {
             console.log('Login exitoso:', response);
             this.authService.saveToken(response.token);
+            this.modulesStore.reset();
           }),
-          switchMap(() =>
-            this.authService.fetchEnabledModules().pipe(
-              catchError((modulesError) => {
-                console.error('No se pudieron cargar los módulos:', modulesError);
-                this.message.warning(
-                  'No se pudieron cargar los módulos habilitados. Se aplicarán restricciones por defecto.',
-                );
-                return of([]);
-              }),
-            ),
-          ),
           finalize(() => {
             this.isLoading = false;
           }),
         )
         .subscribe({
-          next: (modules) => {
-            this.sessionService.setModules(modules);
+          next: () => {
             this.message.success('¡Bienvenido!');
             // Redirigir al dashboard o página principal
             this.router.navigate(['/main/welcome']);

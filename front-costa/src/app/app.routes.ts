@@ -1,7 +1,7 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
-import { PermissionGuard } from './core/guards/permission.guard';
+import { ModuleGuard } from './core/guards/module.guard';
 
 export const routes: Routes = [
   // 🔑 Login completamente independiente
@@ -21,21 +21,45 @@ export const routes: Routes = [
       },
       {
         path: 'categories',  // 🆕 Rutas de categorías
-        canActivate: [PermissionGuard],
-        data: { requiredModule: 'INVENTORY' },
+        canActivate: [ModuleGuard],
+        data: { module: 'INVENTORY' },
         loadChildren: () => import('./pages/categories/categories.routes').then(m => m.CATEGORIES_ROUTES)
       },
       {
         path: 'products',  // 🆕 Para el futuro
-        canActivate: [PermissionGuard],
-        data: { requiredModule: 'INVENTORY' },
+        canActivate: [ModuleGuard],
+        data: { module: 'INVENTORY' },
         loadChildren: () => import('./pages/products/products.routes').then(m => m.PRODUCTS_ROUTES)
       },
       {
         path: 'inventory',  // 🆕 Para el futuro
-        canActivate: [PermissionGuard],
-        data: { requiredModule: 'INVENTORY' },
-        loadChildren: () => import('./pages/inventario/inventory.routes').then(m => m.INVENTORY_ROUTES)
+        canActivate: [ModuleGuard],
+        data: { module: 'INVENTORY' },
+        loadChildren: () => import('./pages/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES)
+      },
+      {
+        path: 'client',
+        canActivate: [ModuleGuard],
+        data: { module: 'CLIENT' },
+        loadChildren: () => import('./pages/client/client.routes').then(m => m.CLIENT_ROUTES)
+      },
+      {
+        path: 'provider',
+        canActivate: [ModuleGuard],
+        data: { module: 'PROVIDER' },
+        loadChildren: () => import('./pages/provider/provider.routes').then(m => m.PROVIDER_ROUTES)
+      },
+      {
+        path: 'quote',
+        canActivate: [ModuleGuard],
+        data: { module: 'QUOTE' },
+        loadChildren: () => import('./pages/quote/quote.routes').then(m => m.QUOTE_ROUTES)
+      },
+      {
+        path: 'purchase',
+        canActivate: [ModuleGuard],
+        data: { module: 'PURCHASE' },
+        loadChildren: () => import('./pages/purchase/purchase.routes').then(m => m.PURCHASE_ROUTES)
       },
       /*
       {
