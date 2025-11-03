@@ -9,7 +9,7 @@ export const routes: Routes = [
     path: 'login',
     loadChildren: () => import('./auth/login/login.routes').then(m => m.login_routes)
   },
-  
+
   // 🏠 Todas las páginas principales con layout
   {
     path: 'main',
@@ -22,43 +22,43 @@ export const routes: Routes = [
       {
         path: 'categories',  // 🆕 Rutas de categorías
         canActivate: [ModuleGuard],
-        data: { module: 'INVENTORY' },
+        data: { moduleKey: 'INVENTORY' },
         loadChildren: () => import('./pages/categories/categories.routes').then(m => m.CATEGORIES_ROUTES)
       },
       {
         path: 'products',  // 🆕 Para el futuro
         canActivate: [ModuleGuard],
-        data: { module: 'INVENTORY' },
+        data: { moduleKey: 'INVENTORY' },
         loadChildren: () => import('./pages/products/products.routes').then(m => m.PRODUCTS_ROUTES)
       },
       {
         path: 'inventory',  // 🆕 Para el futuro
         canActivate: [ModuleGuard],
-        data: { module: 'INVENTORY' },
+        data: { moduleKey: 'INVENTORY' },
         loadChildren: () => import('./pages/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES)
       },
       {
-        path: 'client',
+        path: 'clients',
         canActivate: [ModuleGuard],
-        data: { module: 'CLIENT' },
+        data: { moduleKey: 'CLIENT' },
         loadChildren: () => import('./pages/client/client.routes').then(m => m.CLIENT_ROUTES)
       },
       {
-        path: 'provider',
+        path: 'providers',
         canActivate: [ModuleGuard],
-        data: { module: 'PROVIDER' },
+        data: { moduleKey: 'PROVIDER' },
         loadChildren: () => import('./pages/provider/provider.routes').then(m => m.PROVIDER_ROUTES)
       },
       {
-        path: 'quote',
+        path: 'quotes',
         canActivate: [ModuleGuard],
-        data: { module: 'QUOTE' },
+        data: { moduleKey: 'QUOTE' },
         loadChildren: () => import('./pages/quote/quote.routes').then(m => m.QUOTE_ROUTES)
       },
       {
-        path: 'purchase',
+        path: 'purchases',
         canActivate: [ModuleGuard],
-        data: { module: 'PURCHASE' },
+        data: { moduleKey: 'PURCHASE' },
         loadChildren: () => import('./pages/purchase/purchase.routes').then(m => m.PURCHASE_ROUTES)
       },
       /*
@@ -70,7 +70,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'welcome', pathMatch: 'full' }
     ]
   },
-  
+
   // 🔄 Redirecciones principales
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: '**', redirectTo: '/login' }
