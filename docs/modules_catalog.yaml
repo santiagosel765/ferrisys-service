@@ -1,0 +1,375 @@
+modules:
+  - code: CORE_AUTH
+    name: 'Core de Autenticación'
+    description: 'Gestión centralizada de identidades, roles y permisos con JWT y auditoría.'
+    dependsOn: []
+    capabilities:
+      - login
+      - roles
+      - permisos
+      - tokens
+    featureFlags:
+      - otp
+      - sessionTimeout
+      - globalCors
+    status: 1
+  - code: ORG_BRANCH
+    name: 'Sucursales y Organizaciones'
+    description: 'Estructura jerárquica de compañías, sucursales y bodegas.'
+    dependsOn:
+      - CORE_AUTH
+      - MASTER_DATA
+    capabilities:
+      - multiTenant
+      - branchControl
+      - geocoding
+    featureFlags:
+      - multiBranch
+      - geoTagging
+    status: 1
+  - code: MASTER_DATA
+    name: 'Datos Maestros'
+    description: 'Catálogos transversales (unidades, categorías, impuestos).'
+    dependsOn:
+      - CORE_AUTH
+    capabilities:
+      - catalogos
+      - localizacion
+      - taxes
+    featureFlags:
+      - multiCurrency
+      - regionalCatalogs
+    status: 1
+  - code: PRODUCTS
+    name: 'Productos y Servicios'
+    description: 'Definición de SKUs, kits, servicios y atributos técnicos.'
+    dependsOn:
+      - CORE_AUTH
+      - MASTER_DATA
+    capabilities:
+      - sku
+      - attributes
+      - pricingLink
+    featureFlags:
+      - kitSupport
+      - variantMatrix
+    status: 1
+  - code: INVENTORY
+    name: 'Inventario'
+    description: 'Control de existencias, movimientos, lotes y series.'
+    dependsOn:
+      - CORE_AUTH
+      - PRODUCTS
+      - MASTER_DATA
+    capabilities:
+      - stock
+      - movimientos
+      - ajustes
+    featureFlags:
+      - multiWarehouse
+      - lots
+      - serials
+    status: 1
+  - code: DOCUMENTS
+    name: 'Gestión Documental'
+    description: 'Plantillas y resguardo de documentos transaccionales.'
+    dependsOn:
+      - CORE_AUTH
+    capabilities:
+      - storage
+      - templates
+      - search
+    featureFlags:
+      - s3Storage
+      - retentionPolicies
+    status: 1
+  - code: NOTIFICATIONS
+    name: 'Notificaciones'
+    description: 'Motor de alertas por correo, SMS y app.'
+    dependsOn:
+      - CORE_AUTH
+      - WORKFLOWS
+    capabilities:
+      - email
+      - sms
+      - inApp
+    featureFlags:
+      - webPush
+      - whatsapp
+    status: 1
+  - code: CLIENTS
+    name: 'Clientes'
+    description: 'Gestión 360 de clientes y contactos.'
+    dependsOn:
+      - CORE_AUTH
+      - MASTER_DATA
+    capabilities:
+      - crm
+      - creditProfile
+      - segmentation
+    featureFlags:
+      - scoreCards
+      - preferredPricing
+    status: 1
+  - code: SUPPLIERS
+    name: 'Proveedores'
+    description: 'Directorio de proveedores, contratos y SLA.'
+    dependsOn:
+      - CORE_AUTH
+      - MASTER_DATA
+    capabilities:
+      - suppliers
+      - rating
+      - contracts
+    featureFlags:
+      - slaTracking
+      - integrationEDI
+    status: 1
+  - code: PRICING
+    name: 'Gestión de Precios'
+    description: 'Listas, descuentos y políticas comerciales.'
+    dependsOn:
+      - CORE_AUTH
+      - PRODUCTS
+    capabilities:
+      - priceLists
+      - discounts
+      - approvals
+    featureFlags:
+      - dynamicPricing
+      - volumeDiscounts
+    status: 1
+  - code: SALES
+    name: 'Ventas'
+    description: 'Ciclo comercial completo desde cotización a cierre.'
+    dependsOn:
+      - CORE_AUTH
+      - CLIENTS
+      - PRODUCTS
+      - INVENTORY
+      - PRICING
+    capabilities:
+      - orders
+      - fulfillment
+      - pricing
+    featureFlags:
+      - partialFulfillment
+      - creditHold
+    status: 1
+  - code: PURCHASE
+    name: 'Compras'
+    description: 'Gestión de órdenes de compra y recepción.'
+    dependsOn:
+      - CORE_AUTH
+      - SUPPLIERS
+      - PRODUCTS
+      - INVENTORY
+    capabilities:
+      - purchaseOrders
+      - receipts
+      - threeWayMatch
+    featureFlags:
+      - automaticReorder
+      - approvalFlows
+    status: 1
+  - code: POS
+    name: 'Punto de Venta'
+    description: 'Interfaz táctil para ventas en mostrador.'
+    dependsOn:
+      - CORE_AUTH
+      - SALES
+      - INVENTORY
+      - PRICING
+    capabilities:
+      - fastCheckout
+      - cashControl
+      - receiptPrint
+    featureFlags:
+      - offlineMode
+      - tipManagement
+    status: 1
+  - code: RETURNS
+    name: 'Devoluciones'
+    description: 'Flujos de devoluciones de clientes y proveedores.'
+    dependsOn:
+      - CORE_AUTH
+      - SALES
+      - INVENTORY
+    capabilities:
+      - returns
+      - creditMemo
+      - inspection
+    featureFlags:
+      - reverseLogistics
+      - qualityHold
+    status: 1
+  - code: WMS
+    name: 'WMS'
+    description: 'Gestión avanzada de almacenes y ubicaciones.'
+    dependsOn:
+      - CORE_AUTH
+      - INVENTORY
+    capabilities:
+      - wavePicking
+      - slotting
+      - rfid
+    featureFlags:
+      - rfScanning
+      - laborTracking
+    status: 1
+  - code: PRODUCTION
+    name: 'Producción'
+    description: 'Órdenes de producción y consumo de materiales.'
+    dependsOn:
+      - CORE_AUTH
+      - PRODUCTS
+      - INVENTORY
+    capabilities:
+      - bom
+      - workOrders
+      - backflush
+    featureFlags:
+      - finiteCapacity
+      - qualityChecks
+    status: 1
+  - code: SERVICE_ORDERS
+    name: 'Órdenes de Servicio'
+    description: 'Planificación y ejecución de servicios técnicos.'
+    dependsOn:
+      - CORE_AUTH
+      - CLIENTS
+      - PRODUCTS
+    capabilities:
+      - dispatch
+      - warranty
+      - mobileChecklist
+    featureFlags:
+      - fieldApp
+      - slaAlerts
+    status: 1
+  - code: AR
+    name: 'Cuentas por Cobrar'
+    description: 'Seguimiento de cartera, créditos y cobranzas.'
+    dependsOn:
+      - CORE_AUTH
+      - SALES
+      - CLIENTS
+    capabilities:
+      - aging
+      - creditLimits
+      - collection
+    featureFlags:
+      - dunning
+      - promissoryNotes
+    status: 1
+  - code: AP
+    name: 'Cuentas por Pagar'
+    description: 'Control de obligaciones con proveedores.'
+    dependsOn:
+      - CORE_AUTH
+      - PURCHASE
+      - SUPPLIERS
+    capabilities:
+      - paymentSchedule
+      - matching
+      - cashflow
+    featureFlags:
+      - paymentBatches
+      - earlyPayment
+    status: 1
+  - code: ACCOUNTING
+    name: 'Contabilidad'
+    description: 'Libro diario, mayor y estados financieros.'
+    dependsOn:
+      - CORE_AUTH
+      - AR
+      - AP
+      - BANKS
+    capabilities:
+      - ledger
+      - financialStatements
+      - fiscalReports
+    featureFlags:
+      - multiGaap
+      - consolidation
+    status: 1
+  - code: BANKS
+    name: 'Bancos'
+    description: 'Conciliaciones y movimientos bancarios.'
+    dependsOn:
+      - CORE_AUTH
+    capabilities:
+      - bankFeeds
+      - reconciliation
+      - cashPosition
+    featureFlags:
+      - openBanking
+      - cashPooling
+    status: 1
+  - code: REPORTING_BI
+    name: 'Reportes y BI'
+    description: 'Paneles, KPIs y exportaciones.'
+    dependsOn:
+      - CORE_AUTH
+    capabilities:
+      - dashboards
+      - exports
+      - adHoc
+    featureFlags:
+      - embeddedBI
+      - scheduledReports
+    status: 1
+  - code: AUDIT_LOGS
+    name: 'Auditoría y Logs'
+    description: 'Registro de eventos y cambios críticos.'
+    dependsOn:
+      - CORE_AUTH
+    capabilities:
+      - changeLog
+      - securityAlerts
+      - retention
+    featureFlags:
+      - siemIntegration
+      - anomalyDetection
+    status: 1
+  - code: WORKFLOWS
+    name: 'Workflows'
+    description: 'Orquestación de procesos y aprobaciones.'
+    dependsOn:
+      - CORE_AUTH
+    capabilities:
+      - processDesigner
+      - approvals
+      - sla
+    featureFlags:
+      - bpmn
+      - conditionalRouting
+    status: 1
+  - code: INTEGRATIONS
+    name: 'Integraciones'
+    description: 'Conectores con sistemas externos y marketplace.'
+    dependsOn:
+      - CORE_AUTH
+      - WORKFLOWS
+    capabilities:
+      - apiGateway
+      - webhooks
+      - connectors
+    featureFlags:
+      - edi
+      - satFiscal
+    status: 1
+  - code: SETTINGS
+    name: 'Configuración'
+    description: 'Preferencias globales, personalización y parámetros.'
+    dependsOn:
+      - CORE_AUTH
+      - MASTER_DATA
+    capabilities:
+      - featureFlags
+      - branding
+      - taxConfig
+    featureFlags:
+      - darkMode
+      - customDomains
+    status: 1
