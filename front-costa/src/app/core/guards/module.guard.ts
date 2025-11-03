@@ -1,28 +1,36 @@
 import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap, take } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 
-import { ModulesStore } from '../state/modules.store';
+import { normalizeModuleName } from '../constants/module-route-map';
+import { ModulesService } from '../services/modules.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ModuleGuard implements CanActivate {
-  private readonly modulesStore = inject(ModulesStore);
+  private readonly modulesService = inject(ModulesService);
   private readonly router = inject(Router);
 
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
-    const moduleName = route.data?.['module'] as string | undefined;
+    const moduleKey = (route.data?.['moduleKey'] as string | undefined)?.toUpperCase();
 
-    if (!moduleName) {
+    if (!moduleKey) {
       return of(true);
     }
 
-    return this.modulesStore.loadOnce().pipe(
-      take(1),
-      switchMap(() => this.modulesStore.modules$.pipe(take(1))),
-      map(() => this.modulesStore.hasEnabledModule(moduleName)),
+    return this.modulesService.getAllModules().pipe(
+      map((modules) => {
+        const activeKeys = new Set(
+          modules
+            .filter((module) => module.status === 1)
+            .map((module) => normalizeModuleName(module.name) ?? module.name?.toUpperCase() ?? '')
+            .filter((key) => !!key),
+        );
+
+        return activeKeys.has(moduleKey);
+      }),
       map((hasAccess) => (hasAccess ? true : this.router.parseUrl('/main/welcome'))),
       catchError(() => of(this.router.parseUrl('/main/welcome'))),
     );
