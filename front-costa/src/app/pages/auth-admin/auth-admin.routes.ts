@@ -6,7 +6,7 @@ export const AUTH_ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./users/users-list.component').then(m => m.UsersListComponent),
   },
   {
-    path: 'users/create',
+    path: 'users/new',
     loadComponent: () => import('./users/user-form.component').then(m => m.UserFormComponent),
   },
   {
@@ -18,7 +18,7 @@ export const AUTH_ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./roles/roles-list.component').then(m => m.RolesListComponent),
   },
   {
-    path: 'roles/create',
+    path: 'roles/new',
     loadComponent: () => import('./roles/role-form.component').then(m => m.RoleFormComponent),
   },
   {
@@ -30,7 +30,7 @@ export const AUTH_ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./modules/modules-list.component').then(m => m.ModulesListComponent),
   },
   {
-    path: 'modules/create',
+    path: 'modules/new',
     loadComponent: () => import('./modules/module-form.component').then(m => m.ModuleFormComponent),
   },
   {
