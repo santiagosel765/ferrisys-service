@@ -2,31 +2,100 @@
   <div class="section-header">
     <div>
       <p class="eyebrow">Seguridad</p>
-      <h3 class="section-title">Matriz de permisos</h3>
+      <h3 class="section-title">Permisos</h3>
       <p class="section-subtitle">Asigna módulos disponibles por rol.</p>
     </div>
-    <button nz-button nzType="primary" (click)="saveAll()" [disabled]="saving() || loading()">
+    <button
+      nz-button
+      nzType="primary"
+      (click)="save()"
+      [disabled]="!selectedRoleId() || saving() || !hasChanges()"
+      [nzLoading]="saving()"
+    >
       <span nz-icon nzType="save"></span>
       Guardar cambios
     </button>
   </div>
 
-  <div class="matrix-wrapper">
-    <nz-table nzBordered [nzData]="roles()" [nzLoading]="loading()" [nzScroll]="{ x: '100%' }">
-      <thead>
-        <tr>
-          <th class="sticky-col">Rol</th>
-          <th *ngFor="let module of modules()" class="module-col">{{ module.name }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let role of roles()">
-          <td class="sticky-col">{{ role.name }}</td>
-          <td *ngFor="let module of modules()" class="centered-cell">
-            <label nz-checkbox [ngModel]="isChecked(role.id, module.id)" (ngModelChange)="toggle(role.id, module.id, $event)"></label>
-          </td>
-        </tr>
-      </tbody>
-    </nz-table>
+  <div class="filters">
+    <div class="filter-control">
+      <label class="filter-label">Rol</label>
+      <nz-select
+        nzShowSearch
+        nzPlaceHolder="Selecciona un rol"
+        [ngModel]="selectedRoleId()"
+        (ngModelChange)="onRoleChange($event)"
+        [nzLoading]="loading()"
+      >
+        <nz-option *ngFor="let role of roles()" [nzValue]="role.id" [nzLabel]="role.name"></nz-option>
+      </nz-select>
+    </div>
   </div>
+
+  <ng-container *ngIf="selectedRoleId(); else emptyState">
+    <div class="dual-list" [class.is-loading]="loading()">
+      <div class="list-column">
+        <div class="list-header">
+          <div>
+            <p class="eyebrow">Módulos</p>
+            <h4>No asignados</h4>
+          </div>
+          <nz-spin *ngIf="loading()" nzSimple></nz-spin>
+        </div>
+        <div class="list-body">
+          <label class="list-item" *ngFor="let module of availableModules()">
+            <label
+              nz-checkbox
+              [ngModel]="availableSelection().has(module.id)"
+              (ngModelChange)="toggleSelection('available', module.id, $event)"
+            >
+              {{ module.name }}
+            </label>
+            <p class="description">{{ module.description }}</p>
+          </label>
+          <p class="empty" *ngIf="!availableModules().length">No hay módulos sin asignar.</p>
+        </div>
+      </div>
+
+      <div class="actions-column">
+        <button nz-button nzType="default" (click)="moveToAssigned()" [disabled]="!availableSelection().size">
+          Asignar →
+        </button>
+        <button nz-button nzType="default" (click)="moveToAvailable()" [disabled]="!assignedSelection().size">
+          ← Quitar
+        </button>
+        <button nz-button nzType="link" (click)="assignAll()" [disabled]="!modules().length">Elegir todos</button>
+        <button nz-button nzType="link" (click)="clearAll()" [disabled]="!currentAssigned().length">Limpiar</button>
+      </div>
+
+      <div class="list-column">
+        <div class="list-header">
+          <div>
+            <p class="eyebrow">Módulos</p>
+            <h4>Asignados</h4>
+          </div>
+          <nz-spin *ngIf="loading()" nzSimple></nz-spin>
+        </div>
+        <div class="list-body">
+          <label class="list-item" *ngFor="let module of assignedModules()">
+            <label
+              nz-checkbox
+              [ngModel]="assignedSelection().has(module.id)"
+              (ngModelChange)="toggleSelection('assigned', module.id, $event)"
+            >
+              {{ module.name }}
+            </label>
+            <p class="description">{{ module.description }}</p>
+          </label>
+          <p class="empty" *ngIf="!assignedModules().length">Aún no hay módulos asignados.</p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <p>Selecciona un rol para configurar sus módulos.</p>
+    </div>
+  </ng-template>
 </nz-card>
