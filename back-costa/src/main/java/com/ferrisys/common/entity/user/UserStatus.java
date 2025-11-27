@@ -1,5 +1,6 @@
 package com.ferrisys.common.entity.user;
 
+import com.ferrisys.common.enums.DefaultUserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -33,5 +34,12 @@ public class UserStatus implements Serializable {
 
     public UserStatus(UUID statusId) {
         this.statusId = statusId;
+    }
+
+    public static UserStatus fromCode(Integer code) {
+        if (code == null || code == 1) {
+            return new UserStatus(DefaultUserStatus.ACTIVE.getId());
+        }
+        return new UserStatus(DefaultUserStatus.INACTIVE.getId());
     }
 }
