@@ -8,6 +8,7 @@ import com.ferrisys.repository.ModuleLicenseRepository;
 import com.ferrisys.repository.ModuleRepository;
 import com.ferrisys.repository.UserRepository;
 import com.ferrisys.service.FeatureFlagService;
+import java.text.Normalizer;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Optional;
@@ -85,10 +86,22 @@ public class FeatureFlagServiceImpl implements FeatureFlagService {
     }
 
     private String normalizeForProperty(String slug) {
-        return slug.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-");
+        return stripAccents(slug)
+                .trim()
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-+|-+$", "");
     }
 
     private String normalizeForModule(String slug) {
-        return slug.trim().replaceAll("[^A-Za-z0-9]+", "_").toUpperCase(Locale.ROOT);
+        return stripAccents(slug)
+                .trim()
+                .replaceAll("[^A-Za-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "")
+                .toUpperCase(Locale.ROOT);
+    }
+
+    private String stripAccents(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
     }
 }

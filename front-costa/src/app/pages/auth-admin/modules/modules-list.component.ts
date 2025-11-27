@@ -5,6 +5,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
 import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
@@ -18,37 +20,68 @@ import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
         <h2>Módulos</h2>
         <p class="subtitle">Lista de módulos configurables y licencias.</p>
       </div>
-      <button nz-button nzType="primary" (click)="goCreate()">Nuevo Módulo</button>
+      <button nz-button nzType="primary" (click)="goCreate()">
+        <span nz-icon nzType="plus"></span>
+        Nuevo Módulo
+      </button>
     </div>
 
-    <nz-table [nzData]="modules()" nzBordered [nzLoading]="loading()">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let module of modules()">
-          <td>{{ module.name }}</td>
-          <td>{{ module.description }}</td>
-          <td><nz-tag [nzColor]="module.status === 1 ? 'green' : 'red'">{{ module.status === 1 ? 'Activo' : 'Inactivo' }}</nz-tag></td>
-          <td class="actions">
-            <button nz-button nzType="link" (click)="edit(module.id)">Editar</button>
-            <button nz-button nzDanger nzType="link" (click)="remove(module.id)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </nz-table>
+    <nz-card nzBordered>
+      <nz-table
+        [nzData]="modules()"
+        [nzLoading]="loading()"
+        nzBordered
+        [nzPageSize]="10"
+        nzShowPagination
+        nzPaginationPosition="bottomRight"
+        [nzNoResult]="noModules"
+      >
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th class="actions-col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let module of modules()">
+            <td class="text-strong">{{ module.name }}</td>
+            <td>{{ module.description || 'Sin descripción' }}</td>
+            <td><nz-tag [nzColor]="module.status === 1 ? 'green' : 'default'">{{ module.status === 1 ? 'Activo' : 'Inactivo' }}</nz-tag></td>
+            <td class="actions">
+              <button nz-button nzType="link" (click)="edit(module.id)">
+                <span nz-icon nzType="edit"></span>
+                Editar
+              </button>
+              <button nz-button nzType="link" nzDanger (click)="remove(module.id)">
+                <span nz-icon nzType="delete"></span>
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+      <ng-template #noModules>
+        <div class="empty-state">
+          <p>No hay módulos registrados todavía.</p>
+          <button nz-button nzType="dashed" (click)="goCreate()">
+            <span nz-icon nzType="plus"></span>
+            Crear el primero
+          </button>
+        </div>
+      </ng-template>
+    </nz-card>
   `,
-  imports: [CommonModule, NzTableModule, NzButtonModule, NzTagModule],
+  imports: [CommonModule, NzTableModule, NzButtonModule, NzTagModule, NzCardModule, NzIconModule],
   styles: [
     `
       .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
       .subtitle { color: #6b7280; margin: 0; }
-      .actions { display: flex; gap: 4px; }
+      .actions { display: flex; gap: 8px; align-items: center; }
+      .actions-col { width: 220px; }
+      .text-strong { font-weight: 600; }
+      .empty-state { text-align: center; padding: 24px 0; color: #6b7280; display: flex; flex-direction: column; gap: 12px; }
     `,
   ],
 })
