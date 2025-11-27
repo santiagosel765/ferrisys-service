@@ -1,13 +1,22 @@
 export const MODULE_ALIAS: Record<string, string> = {
   CLIENTS: 'CLIENT',
+  CLIENTES: 'CLIENT',
   SUPPLIERS: 'PROVIDER',
+  PROVEEDORES: 'PROVIDER',
   PROVIDERS: 'PROVIDER',
   QUOTES: 'QUOTE',
+  COTIZACIONES: 'QUOTE',
+  VENTAS: 'QUOTE',
   PURCHASES: 'PURCHASE',
+  COMPRAS: 'PURCHASE',
   PURCHASE_ORDERS: 'PURCHASE',
   PRODUCTS: 'PRODUCT',
+  PRODUCTOS: 'PRODUCT',
+  PRODUCTOS_Y_SERVICIOS: 'PRODUCT',
   CATEGORIES: 'CATEGORY',
+  CATEGORIAS: 'CATEGORY',
   INVENTORIES: 'INVENTORY',
+  INVENTARIO: 'INVENTORY',
 };
 
 export const MODULE_ROUTE_MAP: Record<string, string> = {
@@ -45,6 +54,13 @@ export function normalizeModuleName(name?: string | null): string | undefined {
     return undefined;
   }
 
-  const key = name.trim().toUpperCase();
-  return MODULE_ALIAS[key] ?? key;
+  const sanitized = name
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+
+  return MODULE_ALIAS[sanitized] ?? sanitized;
 }

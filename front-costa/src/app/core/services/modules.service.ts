@@ -14,7 +14,9 @@ export interface ModuleDTO {
 export interface ModulesResponse {
   content: ModuleDTO[];
   totalPages: number;
-  number: number;
+  totalElements: number;
+  page: number;
+  size: number;
 }
 
 @Injectable({
@@ -43,9 +45,13 @@ export class ModulesService {
   }
 
   private fetchAllModules(size: number): Observable<ModuleDTO[]> {
+    // El backend expone el endpoint paginado /v1/auth/modules y responde con
+    // PageResponse<ModuleDTO> (content, totalPages, totalElements, page, size).
+    // Aquí consumimos todas las páginas en memoria para que el Sidebar y los
+    // guards tengan el listado completo de módulos habilitados para el usuario.
     return this.fetchModulesPage(0, size).pipe(
       expand((response) => {
-        const currentPage = response.number ?? 0;
+        const currentPage = response.page ?? 0;
         const totalPages = response.totalPages ?? 1;
         const nextPage = currentPage + 1;
 
