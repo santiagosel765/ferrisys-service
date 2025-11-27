@@ -14,7 +14,8 @@ export class ModuleGuard implements CanActivate {
   private readonly router = inject(Router);
 
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
-    const moduleKey = (route.data?.['moduleKey'] as string | undefined)?.toUpperCase();
+    const moduleKeyRaw = route.data?.['moduleKey'] as string | undefined;
+    const moduleKey = normalizeModuleName(moduleKeyRaw) ?? moduleKeyRaw?.replace(/\s+/g, '_').toUpperCase();
 
     if (!moduleKey) {
       return of(true);
