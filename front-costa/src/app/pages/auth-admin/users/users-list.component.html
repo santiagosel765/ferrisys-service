@@ -64,8 +64,8 @@
           </nz-tag>
         </td>
         <td>
-          <ng-container *ngIf="user.roles?.length; else noRoles">
-            <nz-tag nzColor="blue" *ngFor="let role of user.roles">{{ role }}</nz-tag>
+          <ng-container *ngIf="user.roleNames?.length || user.roles?.length; else noRoles">
+            <nz-tag nzColor="blue" *ngFor="let role of (user.roleNames?.length ? user.roleNames : user.roles)">{{ role }}</nz-tag>
           </ng-container>
           <ng-template #noRoles>
             <nz-tag nzColor="default">{{ rolesLabel(user) }}</nz-tag>
@@ -76,7 +76,6 @@
             <span nz-icon nzType="edit"></span>
             Editar
           </button>
-          <app-user-role-assignment [userId]="user.id" (completed)="reload()"></app-user-role-assignment>
           <button
             nz-button
             nzType="link"
