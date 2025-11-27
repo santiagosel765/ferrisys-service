@@ -5,6 +5,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
 import { AuthUserSummary } from '../../../core/models/auth-admin.models';
@@ -19,47 +21,85 @@ import { UserRoleAssignmentComponent } from './user-role-assignment.component';
         <h2>Usuarios</h2>
         <p class="subtitle">Gestión de cuentas, estado y roles asignados.</p>
       </div>
-      <button nz-button nzType="primary" (click)="goCreate()">Nuevo Usuario</button>
+      <button nz-button nzType="primary" (click)="goCreate()">
+        <span nz-icon nzType="user-add"></span>
+        Nuevo Usuario
+      </button>
     </div>
 
-    <nz-table [nzData]="users()" nzBordered [nzLoading]="loading()">
-      <thead>
-        <tr>
-          <th>Usuario</th>
-          <th>Email</th>
-          <th>Nombre</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users()">
-          <td>{{ user.username }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.fullName || '-' }}</td>
-          <td>
-            <nz-tag [nzColor]="user.status === 1 ? 'green' : 'red'">
-              {{ user.status === 1 ? 'Activo' : 'Inactivo' }}
-            </nz-tag>
-          </td>
-          <td class="actions">
-            <button nz-button nzType="link" (click)="edit(user.id)">Editar</button>
-            <app-user-role-assignment
-              [userId]="user.id"
-              (completed)="reload()"
-            ></app-user-role-assignment>
-            <button nz-button nzDanger nzType="link" (click)="remove(user.id)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </nz-table>
+    <nz-card nzBordered>
+      <nz-table
+        [nzData]="users()"
+        [nzLoading]="loading()"
+        nzBordered
+        [nzPageSize]="10"
+        nzShowPagination
+        nzPaginationPosition="bottomRight"
+        [nzNoResult]="noUsers"
+      >
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Nombre</th>
+            <th>Estado</th>
+            <th>Roles</th>
+            <th class="actions-col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users()">
+            <td class="text-strong">{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.fullName || '-' }}</td>
+            <td>
+              <nz-tag [nzColor]="user.status === 1 ? 'green' : 'default'">
+                {{ user.status === 1 ? 'Activo' : 'Inactivo' }}
+              </nz-tag>
+            </td>
+            <td>{{ rolesLabel(user) }}</td>
+            <td class="actions">
+              <button nz-button nzType="link" (click)="edit(user.id)">
+                <span nz-icon nzType="edit"></span>
+                Editar
+              </button>
+              <app-user-role-assignment [userId]="user.id" (completed)="reload()"></app-user-role-assignment>
+              <button nz-button nzType="link" nzDanger (click)="remove(user.id)">
+                <span nz-icon nzType="delete"></span>
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+      <ng-template #noUsers>
+        <div class="empty-state">
+          <p>No hay usuarios registrados todavía.</p>
+          <button nz-button nzType="dashed" (click)="goCreate()">
+            <span nz-icon nzType="plus"></span>
+            Crear el primero
+          </button>
+        </div>
+      </ng-template>
+    </nz-card>
   `,
-  imports: [CommonModule, NzTableModule, NzButtonModule, NzTagModule, UserRoleAssignmentComponent],
+  imports: [
+    CommonModule,
+    NzTableModule,
+    NzButtonModule,
+    NzTagModule,
+    NzCardModule,
+    NzIconModule,
+    UserRoleAssignmentComponent,
+  ],
   styles: [
     `
       .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
       .subtitle { color: #6b7280; margin: 0; }
-      .actions { display: flex; gap: 4px; }
+      .actions { display: flex; gap: 8px; align-items: center; }
+      .actions-col { width: 220px; }
+      .text-strong { font-weight: 600; }
+      .empty-state { text-align: center; padding: 24px 0; color: #6b7280; display: flex; flex-direction: column; gap: 12px; }
     `,
   ],
 })
@@ -102,5 +142,15 @@ export class UsersListComponent implements OnInit {
       error: () => this.message.error('No se pudo eliminar el usuario'),
       complete: () => this.loading.set(false),
     });
+  }
+
+  rolesLabel(user: AuthUserSummary): string {
+    if (user.roles && user.roles.length > 0) {
+      return user.roles.join(', ');
+    }
+    if (user.roleName) {
+      return user.roleName;
+    }
+    return 'Sin rol asignado';
   }
 }

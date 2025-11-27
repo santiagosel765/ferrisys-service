@@ -5,6 +5,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
 import { AuthRoleSummary } from '../../../core/models/auth-admin.models';
@@ -19,40 +21,79 @@ import { RoleModulesAssignmentComponent } from './role-modules-assignment.compon
         <h2>Roles</h2>
         <p class="subtitle">Agrupa permisos y módulos para los usuarios.</p>
       </div>
-      <button nz-button nzType="primary" (click)="goCreate()">Nuevo Rol</button>
+      <button nz-button nzType="primary" (click)="goCreate()">
+        <span nz-icon nzType="plus"></span>
+        Nuevo Rol
+      </button>
     </div>
 
-    <nz-table [nzData]="roles()" nzBordered [nzLoading]="loading()">
-      <thead>
-        <tr>
-          <th>Rol</th>
-          <th>Descripción</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let role of roles()">
-          <td>{{ role.name }}</td>
-          <td>{{ role.description }}</td>
-          <td>
-            <nz-tag [nzColor]="role.status === 1 ? 'green' : 'red'">{{ role.status === 1 ? 'Activo' : 'Inactivo' }}</nz-tag>
-          </td>
-          <td class="actions">
-            <button nz-button nzType="link" (click)="edit(role.id)">Editar</button>
-            <app-role-modules-assignment [roleId]="role.id" (completed)="reload()"></app-role-modules-assignment>
-            <button nz-button nzDanger nzType="link" (click)="remove(role.id)">Eliminar</button>
-          </td>
-        </tr>
-      </tbody>
-    </nz-table>
+    <nz-card nzBordered>
+      <nz-table
+        [nzData]="roles()"
+        [nzLoading]="loading()"
+        nzBordered
+        [nzPageSize]="10"
+        nzShowPagination
+        nzPaginationPosition="bottomRight"
+        [nzNoResult]="noRoles"
+      >
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th class="actions-col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let role of roles()">
+            <td class="text-strong">{{ role.name }}</td>
+            <td>{{ role.description || 'Sin descripción' }}</td>
+            <td>
+              <nz-tag [nzColor]="role.status === 1 ? 'green' : 'default'">{{ role.status === 1 ? 'Activo' : 'Inactivo' }}</nz-tag>
+            </td>
+            <td class="actions">
+              <button nz-button nzType="link" (click)="edit(role.id)">
+                <span nz-icon nzType="edit"></span>
+                Editar
+              </button>
+              <app-role-modules-assignment [roleId]="role.id" (completed)="reload()"></app-role-modules-assignment>
+              <button nz-button nzType="link" nzDanger (click)="remove(role.id)">
+                <span nz-icon nzType="delete"></span>
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+      <ng-template #noRoles>
+        <div class="empty-state">
+          <p>No hay roles registrados todavía.</p>
+          <button nz-button nzType="dashed" (click)="goCreate()">
+            <span nz-icon nzType="plus"></span>
+            Crear el primero
+          </button>
+        </div>
+      </ng-template>
+    </nz-card>
   `,
-  imports: [CommonModule, NzTableModule, NzButtonModule, NzTagModule, RoleModulesAssignmentComponent],
+  imports: [
+    CommonModule,
+    NzTableModule,
+    NzButtonModule,
+    NzTagModule,
+    NzCardModule,
+    NzIconModule,
+    RoleModulesAssignmentComponent,
+  ],
   styles: [
     `
       .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
       .subtitle { color: #6b7280; margin: 0; }
-      .actions { display: flex; gap: 4px; }
+      .actions { display: flex; gap: 8px; align-items: center; }
+      .actions-col { width: 220px; }
+      .text-strong { font-weight: 600; }
+      .empty-state { text-align: center; padding: 24px 0; color: #6b7280; display: flex; flex-direction: column; gap: 12px; }
     `,
   ],
 })

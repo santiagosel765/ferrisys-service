@@ -6,6 +6,8 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzCardModule } from 'ng-zorro-antd/card';
 
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
 import { AuthUserSummary } from '../../../core/models/auth-admin.models';
@@ -16,57 +18,77 @@ import { AuthUserSummary } from '../../../core/models/auth-admin.models';
   template: `
     <div class="page-header">
       <div>
-        <h2>{{ isEdit() ? 'Editar usuario' : 'Crear usuario' }}</h2>
-        <p class="subtitle">Formulario reactivo con validaciones básicas.</p>
+        <h2>{{ isEdit() ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+        <p class="subtitle">Gestiona la cuenta y credenciales del usuario.</p>
       </div>
     </div>
 
-    <form nz-form [formGroup]="form" (ngSubmit)="submit()" class="form">
-      <label nz-form-item>
-        <span nz-form-label>Usuario</span>
-        <nz-form-control nzErrorTip="Requerido">
-          <input nz-input formControlName="username" />
-        </nz-form-control>
-      </label>
+    <nz-card nzBordered>
+      <form nz-form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzFor="username" nzRequired>Usuario</nz-form-label>
+          <nz-form-control [nzSpan]="18" nzErrorTip="Ingresa un usuario">
+            <input id="username" nz-input formControlName="username" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <label nz-form-item>
-        <span nz-form-label>Email</span>
-        <nz-form-control nzErrorTip="Email inválido">
-          <input nz-input formControlName="email" type="email" />
-        </nz-form-control>
-      </label>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzFor="email" nzRequired>Email</nz-form-label>
+          <nz-form-control [nzSpan]="18" nzErrorTip="Email inválido">
+            <input id="email" nz-input formControlName="email" type="email" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <label nz-form-item>
-        <span nz-form-label>Nombre</span>
-        <nz-form-control>
-          <input nz-input formControlName="fullName" />
-        </nz-form-control>
-      </label>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzFor="fullName" nzRequired>Nombre completo</nz-form-label>
+          <nz-form-control [nzSpan]="18" nzErrorTip="Requerido">
+            <input id="fullName" nz-input formControlName="fullName" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <label nz-form-item *ngIf="!isEdit()">
-        <span nz-form-label>Contraseña</span>
-        <nz-form-control nzErrorTip="Requerido">
-          <input nz-input type="password" formControlName="password" />
-        </nz-form-control>
-      </label>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzFor="status">Estado</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <nz-select id="status" formControlName="status">
+              <nz-option [nzValue]="1" nzLabel="Activo"></nz-option>
+              <nz-option [nzValue]="0" nzLabel="Inactivo"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
 
-      <div class="actions">
-        <button nz-button nzType="default" (click)="cancel()" type="button">Cancelar</button>
-        <button nz-button nzType="primary" [disabled]="form.invalid || saving()" type="submit">
-          {{ isEdit() ? 'Guardar cambios' : 'Crear usuario' }}
-        </button>
-      </div>
-    </form>
+        <nz-form-item *ngIf="!isEdit()">
+          <nz-form-label [nzSpan]="6" nzFor="password" nzRequired>Contraseña</nz-form-label>
+          <nz-form-control [nzSpan]="18" nzErrorTip="Ingresa una contraseña">
+            <input id="password" nz-input type="password" formControlName="password" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <div class="actions">
+          <button nz-button nzType="link" type="button" (click)="cancel()">Cancelar</button>
+          <button nz-button nzType="primary" [disabled]="form.invalid || saving()" type="submit">
+            {{ isEdit() ? 'Guardar cambios' : 'Crear usuario' }}
+          </button>
+        </div>
+      </form>
+    </nz-card>
   `,
   styles: [
     `
-      .form { max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
       .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
       .subtitle { color: #6b7280; margin: 0; }
-      .actions { display: flex; gap: 8px; justify-content: flex-end; }
+      .form-grid { max-width: 720px; margin: 0 auto; }
+      .actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; }
     `,
   ],
-  imports: [CommonModule, ReactiveFormsModule, NzFormModule, NzInputModule, NzButtonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NzFormModule,
+    NzInputModule,
+    NzButtonModule,
+    NzSelectModule,
+    NzCardModule,
+  ],
 })
 export class UserFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -82,8 +104,8 @@ export class UserFormComponent implements OnInit {
     id: this.fb.control<string | null>(null),
     username: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    fullName: [''],
-    password: ['', [Validators.required]],
+    fullName: ['', [Validators.required]],
+    password: ['', []],
     status: this.fb.control<number>(1),
   });
 
@@ -91,9 +113,14 @@ export class UserFormComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit.set(true);
+      this.form.get('password')?.clearValidators();
+      this.form.get('password')?.updateValueAndValidity();
       this.service.get(id).subscribe((user) => {
         this.form.patchValue({ ...user, password: '' });
       });
+    } else {
+      this.form.get('password')?.setValidators([Validators.required]);
+      this.form.get('password')?.updateValueAndValidity();
     }
   }
 
@@ -110,8 +137,8 @@ export class UserFormComponent implements OnInit {
       ...rest,
       status: rest.status ?? 1,
     };
-    if (!this.isEdit()) {
-      payload['password'] = password || undefined;
+    if (!this.isEdit() && password) {
+      payload['password'] = password;
     }
 
     const request$ = this.isEdit() && id

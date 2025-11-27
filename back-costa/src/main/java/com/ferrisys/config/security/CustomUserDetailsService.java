@@ -8,11 +8,13 @@ import com.ferrisys.common.exception.impl.NotFoundException;
 import com.ferrisys.repository.RoleModuleRepository;
 import com.ferrisys.service.FeatureFlagService;
 import com.ferrisys.service.UserService;
+import java.text.Normalizer;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,6 +24,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -46,6 +49,10 @@ public class CustomUserDetailsService implements UserDetailsService {
                         .forEach(module -> addModuleAuthority(authorities, module, user.getId()));
             }
 
+            if (log.isDebugEnabled()) {
+                log.debug("Authorities for {}: {}", username, authorities);
+            }
+
             return org.springframework.security.core.userdetails.User.builder()
                     .username(user.getUsername())
                     .password(user.getPassword())
@@ -68,6 +75,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private String normalize(String value) {
-        return value.trim().replaceAll("[^A-Za-z0-9]+", "_").toUpperCase(Locale.ROOT);
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .trim()
+                .replaceAll("[^A-Za-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        return normalized.toUpperCase(Locale.ROOT);
     }
 }
