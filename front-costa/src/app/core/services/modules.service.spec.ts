@@ -28,14 +28,18 @@ describe('ModulesService', () => {
       content: [
         { id: '1', name: 'INVENTORY', description: 'Inventory module', status: 1 },
       ],
-      number: 0,
+      page: 0,
+      size: 1,
+      totalElements: 2,
       totalPages: 2,
     };
     const page1: ModulesResponse = {
       content: [
         { id: '2', name: 'CLIENTS', description: 'Clients module', status: 1 },
       ],
-      number: 1,
+      page: 1,
+      size: 1,
+      totalElements: 2,
       totalPages: 2,
     };
 
@@ -76,7 +80,9 @@ describe('ModulesService', () => {
       content: [
         { id: '1', name: 'INVENTORY', description: 'Inventory module', status: 1 },
       ],
-      number: 0,
+      page: 0,
+      size: 200,
+      totalElements: 1,
       totalPages: 1,
     };
 

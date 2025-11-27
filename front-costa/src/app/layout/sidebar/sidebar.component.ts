@@ -21,7 +21,7 @@ import {
   MODULE_ROUTE_MAP,
   normalizeModuleName,
 } from '../../core/constants/module-route-map';
-import { ModulesService } from '../../core/services/modules.service';
+import { ModuleDTO, ModulesService } from '../../core/services/modules.service';
 
 interface SidebarMenuItem {
   key: string;
@@ -54,22 +54,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.loading = true;
 
     this.modulesService
+      // Se consumen todos los módulos habilitados para el usuario (paginados en backend)
+      // y se convierten en items del menú lateral.
       .getAllModules()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (all) => {
           this.menuItems = all
             .filter((module) => module.status === 1)
-            .map((module) => normalizeModuleName(module.name) ?? module.name?.toUpperCase() ?? '')
-            .filter((key) => !!key)
-            .map((key) => ({ key, route: MODULE_ROUTE_MAP[key] }))
-            .filter((item): item is { key: string; route: string } => !!item.route)
-            .map((item) => ({
-              key: item.key,
-              route: item.route,
-              label: MODULE_LABEL_MAP[item.key] ?? this.formatLabel(item.key),
-              icon: MODULE_ICON_MAP[item.key] ?? 'appstore',
-            }));
+            .map((module) => this.buildMenuItem(module))
+            .filter((item): item is SidebarMenuItem => !!item);
 
           this.loading = false;
           this.cdr.markForCheck();
@@ -89,6 +83,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   trackByKey = (_: number, item: SidebarMenuItem): string => item.key;
+
+  private buildMenuItem(module: ModuleDTO): SidebarMenuItem | null {
+    const key = normalizeModuleName(module.name) ?? module.name?.toUpperCase();
+
+    if (!key) {
+      return null;
+    }
+
+    const route = MODULE_ROUTE_MAP[key] ?? '/main/welcome';
+
+    return {
+      key,
+      route,
+      // Se prioriza el nombre del módulo para mostrar el label real definido en BD.
+      label: MODULE_LABEL_MAP[key] ?? module.name ?? this.formatLabel(key),
+      icon: MODULE_ICON_MAP[key] ?? 'appstore',
+    };
+  }
 
   private formatLabel(key: string): string {
     return key
