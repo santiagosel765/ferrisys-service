@@ -1,56 +1,57 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
-import { ModulesStore } from '../state/modules.store';
+import { ModulesService } from '../services/modules.service';
 import { ModuleGuard } from './module.guard';
 
 describe('ModuleGuard', () => {
   let guard: ModuleGuard;
-  let modulesStore: jasmine.SpyObj<ModulesStore>;
+  let modulesService: jasmine.SpyObj<ModulesService>;
   let router: Router;
 
   beforeEach(() => {
-    const modulesStoreSpy = jasmine.createSpyObj<ModulesStore>(
-      'ModulesStore',
-      ['loadOnce', 'hasEnabledModule'],
-      { modules$: of([]) },
-    );
+    const modulesServiceSpy = jasmine.createSpyObj<ModulesService>('ModulesService', ['getAllModules']);
 
     TestBed.configureTestingModule({
       imports: [RouterTestingModule.withRoutes([])],
       providers: [
         ModuleGuard,
-        { provide: ModulesStore, useValue: modulesStoreSpy },
+        { provide: ModulesService, useValue: modulesServiceSpy },
       ],
     });
 
     guard = TestBed.inject(ModuleGuard);
-    modulesStore = TestBed.inject(ModulesStore) as jasmine.SpyObj<ModulesStore>;
+    modulesService = TestBed.inject(ModulesService) as jasmine.SpyObj<ModulesService>;
     router = TestBed.inject(Router);
   });
 
-  const createRoute = (module?: string): ActivatedRouteSnapshot => ({
-    data: module ? { module } : {},
+  const createRoute = (moduleKey?: string): ActivatedRouteSnapshot => ({
+    data: moduleKey ? { moduleKey } : {},
   }) as ActivatedRouteSnapshot;
 
   it('should allow activation when module is available', (done) => {
-    modulesStore.loadOnce.and.returnValue(of([]));
-    modulesStore.hasEnabledModule.and.returnValue(true);
+    modulesService.getAllModules.and.returnValue(
+      of([
+        { id: '1', name: 'INVENTORY', description: '', status: 1 },
+        { id: '2', name: 'CLIENTS', description: '', status: 1 },
+      ]),
+    );
 
-    guard.canActivate(createRoute('INVENTORY')).subscribe((result) => {
+    guard.canActivate(createRoute('CLIENT')).subscribe((result) => {
       expect(result).toBeTrue();
-      expect(modulesStore.loadOnce).toHaveBeenCalled();
+      expect(modulesService.getAllModules).toHaveBeenCalled();
       done();
     });
   });
 
   it('should redirect when module is not available', (done) => {
-    modulesStore.loadOnce.and.returnValue(of([]));
-    modulesStore.hasEnabledModule.and.returnValue(false);
+    modulesService.getAllModules.and.returnValue(
+      of([{ id: '1', name: 'INVENTORY', description: '', status: 1 }]),
+    );
 
-    guard.canActivate(createRoute('INVENTORY')).subscribe((result) => {
+    guard.canActivate(createRoute('QUOTE')).subscribe((result) => {
       const expectedUrl: UrlTree = router.parseUrl('/main/welcome');
       expect(result).toEqual(expectedUrl);
       done();
@@ -58,10 +59,19 @@ describe('ModuleGuard', () => {
   });
 
   it('should pass through when no module is defined', (done) => {
-    modulesStore.loadOnce.and.returnValue(of([]));
-
     guard.canActivate(createRoute()).subscribe((result) => {
       expect(result).toBeTrue();
+      expect(modulesService.getAllModules).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it('should redirect on error', (done) => {
+    modulesService.getAllModules.and.returnValue(throwError(() => new Error('Network error')));
+
+    guard.canActivate(createRoute('INVENTORY')).subscribe((result) => {
+      const expectedUrl: UrlTree = router.parseUrl('/main/welcome');
+      expect(result).toEqual(expectedUrl);
       done();
     });
   });

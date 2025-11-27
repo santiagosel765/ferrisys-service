@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, finalize, map, shareReplay, tap } from 'rxjs/operators';
+import { catchError, finalize, shareReplay, tap } from 'rxjs/operators';
 
+import { MODULE_ALIAS } from '../constants/module-route-map';
 import { ModuleDTO, ModulesService } from '../services/modules.service';
 
 @Injectable({
@@ -33,23 +34,24 @@ export class ModulesStore {
     this.loadingSubject.next(true);
     this.errorSubject.next(false);
 
-    this.inFlight$ = this.modulesService.getModules().pipe(
-      map((response) => response?.content ?? []),
-      tap((modules) => {
-        this.modulesSubject.next(modules);
-        this.hasLoaded = true;
-      }),
-      catchError(() => {
-        this.errorSubject.next(true);
-        this.modulesSubject.next([]);
-        return of([]);
-      }),
-      finalize(() => {
-        this.loadingSubject.next(false);
-        this.inFlight$ = undefined;
-      }),
-      shareReplay({ bufferSize: 1, refCount: false }),
-    );
+    this.inFlight$ = this.modulesService
+      .getAllModules()
+      .pipe(
+        tap((modules) => {
+          this.modulesSubject.next(modules);
+          this.hasLoaded = true;
+        }),
+        catchError(() => {
+          this.errorSubject.next(true);
+          this.modulesSubject.next([]);
+          return of([]);
+        }),
+        finalize(() => {
+          this.loadingSubject.next(false);
+          this.inFlight$ = undefined;
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
 
     return this.inFlight$;
   }
@@ -60,9 +62,11 @@ export class ModulesStore {
     }
 
     const normalized = moduleName.toUpperCase();
-    return this.modulesSubject.value.some(
-      (module) => module.status === 1 && module.name?.toUpperCase() === normalized,
-    );
+    return this.modulesSubject.value.some((module) => {
+      const moduleKey = module.name?.toUpperCase() ?? '';
+      const alias = MODULE_ALIAS[moduleKey] ?? moduleKey;
+      return module.status === 1 && alias === normalized;
+    });
   }
 
   reset(): void {
@@ -71,5 +75,6 @@ export class ModulesStore {
     this.modulesSubject.next([]);
     this.loadingSubject.next(false);
     this.errorSubject.next(false);
+    this.modulesService.clearCache();
   }
 }

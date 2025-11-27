@@ -1,16 +1,34 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { Observable, Subject } from 'rxjs';
-import { filter, map, takeUntil } from 'rxjs/operators';
+import { Subject, takeUntil } from 'rxjs';
 
-import { MODULE_ROUTE_MAP } from '../../core/config/module-route-map';
-import { ModuleDTO } from '../../core/services/modules.service';
-import { ModulesStore } from '../../core/state/modules.store';
+import {
+  MODULE_ICON_MAP,
+  MODULE_LABEL_MAP,
+  MODULE_ROUTE_MAP,
+  normalizeModuleName,
+} from '../../core/constants/module-route-map';
+import { ModulesService } from '../../core/services/modules.service';
+
+interface SidebarMenuItem {
+  key: string;
+  route: string;
+  label: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-sidebar',
@@ -23,29 +41,45 @@ import { ModulesStore } from '../../core/state/modules.store';
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() collapsed = false;
 
-  private readonly modulesStore = inject(ModulesStore);
+  private readonly modulesService = inject(ModulesService);
   private readonly message = inject(NzMessageService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly destroy$ = new Subject<void>();
 
-  readonly MODULE_ROUTE_MAP = MODULE_ROUTE_MAP;
-  readonly loading$: Observable<boolean> = this.modulesStore.loading$;
-  readonly modules$: Observable<ModuleDTO[]> = this.modulesStore.modules$.pipe(
-    map((modules) =>
-      modules.filter((module) => module.status === 1 && !!MODULE_ROUTE_MAP[module.name]),
-    ),
-  );
+  loading = false;
+  menuItems: SidebarMenuItem[] = [];
 
   ngOnInit(): void {
-    this.modulesStore.loadOnce().pipe(takeUntil(this.destroy$)).subscribe();
+    this.loading = true;
 
-    this.modulesStore.error$
-      .pipe(
-        takeUntil(this.destroy$),
-        filter((hasError) => hasError),
-      )
-      .subscribe(() => {
-        this.message.error('No se pudieron cargar módulos');
+    this.modulesService
+      .getAllModules()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (all) => {
+          this.menuItems = all
+            .filter((module) => module.status === 1)
+            .map((module) => normalizeModuleName(module.name) ?? module.name?.toUpperCase() ?? '')
+            .filter((key) => !!key)
+            .map((key) => ({ key, route: MODULE_ROUTE_MAP[key] }))
+            .filter((item): item is { key: string; route: string } => !!item.route)
+            .map((item) => ({
+              key: item.key,
+              route: item.route,
+              label: MODULE_LABEL_MAP[item.key] ?? this.formatLabel(item.key),
+              icon: MODULE_ICON_MAP[item.key] ?? 'appstore',
+            }));
+
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.loading = false;
+          this.menuItems = [];
+          this.cdr.markForCheck();
+          this.message.error('No se pudieron cargar módulos');
+        },
       });
   }
 
@@ -54,5 +88,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  trackByModule = (_: number, module: ModuleDTO): string => module.id ?? module.name;
+  trackByKey = (_: number, item: SidebarMenuItem): string => item.key;
+
+  private formatLabel(key: string): string {
+    return key
+      .toLowerCase()
+      .split('_')
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ');
+  }
 }
