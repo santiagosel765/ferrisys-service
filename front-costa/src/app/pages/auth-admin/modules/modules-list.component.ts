@@ -33,7 +33,7 @@ import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
         nzBordered
         [nzPageSize]="10"
         nzShowPagination
-        nzPaginationPosition="bottomRight"
+        nzPaginationPosition="bottom"
         [nzNoResult]="noModules"
       >
         <thead>
