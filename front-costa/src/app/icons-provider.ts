@@ -25,6 +25,10 @@ import {
   UserOutline,
   ShoppingCartOutline,
   CloudDownloadOutline,
+  AppstoreOutline,
+  AppstoreAddOutline,
+  SafetyOutline,
+  SafetyCertificateOutline,
   
   // 🚨 ÍCONOS FALTANTES QUE ESTÁN CAUSANDO EL PROBLEMA:
   PlusOutline,           // Para el botón "Nueva Categoría"
@@ -72,6 +76,10 @@ export const icons = [
   UserOutline,
   ShoppingCartOutline,
   CloudDownloadOutline,
+  AppstoreOutline,
+  AppstoreAddOutline,
+  SafetyOutline,
+  SafetyCertificateOutline,
   
   // 🚨 ÍCONOS CRÍTICOS FALTANTES:
   PlusOutline,           // MUY IMPORTANTE - botón nueva categoría

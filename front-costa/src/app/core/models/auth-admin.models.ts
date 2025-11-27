@@ -4,6 +4,8 @@ export interface AuthUserSummary {
   email: string;
   fullName?: string;
   status: number;
+  roles?: string[];
+  roleName?: string;
 }
 
 export interface AuthRoleSummary {

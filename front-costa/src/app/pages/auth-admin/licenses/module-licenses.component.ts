@@ -8,6 +8,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { LicensesAdminService } from '../../../core/services/auth-admin/licenses-admin.service';
 import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
@@ -24,7 +26,8 @@ import { ModuleLicenseDTO, AuthModuleSummary } from '../../../core/models/auth-a
       </div>
     </div>
 
-    <form nz-form [formGroup]="form" (ngSubmit)="create()" class="form">
+    <nz-card nzBordered>
+      <form nz-form [formGroup]="form" (ngSubmit)="create()" class="form">
       <label nz-form-item>
         <span nz-form-label>Tenant</span>
         <nz-form-control nzErrorTip="Requerido">
@@ -54,26 +57,31 @@ import { ModuleLicenseDTO, AuthModuleSummary } from '../../../core/models/auth-a
       <div class="actions">
         <button nz-button nzType="primary" [disabled]="form.invalid" type="submit">Agregar</button>
       </div>
-    </form>
+      </form>
 
-    <nz-table [nzData]="licenses()" nzBordered [nzLoading]="loading()" class="mt">
-      <thead>
-        <tr>
-          <th>Tenant</th>
-          <th>Módulo</th>
-          <th>Estado</th>
-          <th>Expira</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let license of licenses()">
-          <td>{{ license.tenantId }}</td>
-          <td>{{ resolveModule(license.moduleId)?.name || license.moduleId }}</td>
-          <td>{{ license.enabled ? 'Habilitado' : 'Deshabilitado' }}</td>
-          <td>{{ license.expiresAt || 'Sin expiración' }}</td>
-        </tr>
-      </tbody>
-    </nz-table>
+      <nz-table [nzData]="licenses()" nzBordered [nzLoading]="loading()" class="mt">
+        <thead>
+          <tr>
+            <th>Tenant</th>
+            <th>Módulo</th>
+            <th>Estado</th>
+            <th>Expira</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let license of licenses()">
+            <td class="text-strong">{{ license.tenantId }}</td>
+            <td>{{ resolveModule(license.moduleId)?.name || license.moduleId }}</td>
+            <td>
+              <nz-tag [nzColor]="license.enabled ? 'green' : 'default'">
+                {{ license.enabled ? 'Habilitado' : 'Deshabilitado' }}
+              </nz-tag>
+            </td>
+            <td>{{ license.expiresAt || 'Sin expiración' }}</td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </nz-card>
   `,
   styles: [
     `
@@ -82,6 +90,7 @@ import { ModuleLicenseDTO, AuthModuleSummary } from '../../../core/models/auth-a
       .subtitle { color: #6b7280; margin: 0; }
       .actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
       .mt { margin-top: 16px; }
+      .text-strong { font-weight: 600; }
     `,
   ],
   imports: [
@@ -93,6 +102,8 @@ import { ModuleLicenseDTO, AuthModuleSummary } from '../../../core/models/auth-a
     NzInputModule,
     NzDatePickerModule,
     NzSwitchModule,
+    NzCardModule,
+    NzTagModule,
   ],
 })
 export class ModuleLicensesComponent implements OnInit {

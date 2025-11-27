@@ -37,7 +37,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/auth/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('MODULE_CORE_DE_AUTENTICACION')")
+@PreAuthorize(
+        "@featureFlagService.enabledForCurrentUser('core-de-autenticacion') and (hasAuthority('MODULE_CORE_DE_AUTENTICACION') or hasRole('ADMIN'))")
 public class AuthAdminController {
 
     private final UserRepository userRepository;
