@@ -4,6 +4,8 @@ export interface AuthUserSummary {
   email: string;
   fullName?: string;
   status: number;
+  roleIds?: string[];
+  roleNames?: string[];
   roles?: string[];
   roleName?: string;
 }
@@ -25,6 +27,12 @@ export interface AuthModuleSummary {
 export interface RoleModuleAssignment {
   roleId: string;
   moduleIds: string[];
+}
+
+export interface RoleModulesResponse {
+  roleId: string;
+  roleName: string;
+  assignedModuleIds: string[];
 }
 
 export interface UserRoleAssignment {

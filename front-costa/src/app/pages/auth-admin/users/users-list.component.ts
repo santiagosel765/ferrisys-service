@@ -14,7 +14,6 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { AuthUserSummary } from '../../../core/models/auth-admin.models';
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
-import { UserRoleAssignmentComponent } from './user-role-assignment.component';
 
 @Component({
   standalone: true,
@@ -32,7 +31,6 @@ import { UserRoleAssignmentComponent } from './user-role-assignment.component';
     NzInputModule,
     NzSelectModule,
     NzPopconfirmModule,
-    UserRoleAssignmentComponent,
   ],
 })
 export class UsersListComponent implements OnInit {
@@ -102,8 +100,9 @@ export class UsersListComponent implements OnInit {
   }
 
   rolesLabel(user: AuthUserSummary): string {
-    if (user.roles && user.roles.length > 0) {
-      return user.roles.join(', ');
+    const roleNames = user.roleNames?.length ? user.roleNames : user.roles;
+    if (roleNames && roleNames.length > 0) {
+      return roleNames.join(', ');
     }
     if (user.roleName) {
       return user.roleName;

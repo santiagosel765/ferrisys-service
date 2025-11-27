@@ -13,7 +13,6 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { AuthRoleSummary } from '../../../core/models/auth-admin.models';
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
-import { RoleModulesAssignmentComponent } from './role-modules-assignment.component';
 
 @Component({
   standalone: true,
@@ -30,7 +29,6 @@ import { RoleModulesAssignmentComponent } from './role-modules-assignment.compon
     NzIconModule,
     NzInputModule,
     NzPopconfirmModule,
-    RoleModulesAssignmentComponent,
   ],
 })
 export class RolesListComponent implements OnInit {

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiService } from '../api.service';
-import { AuthRoleSummary, RoleModuleAssignment } from '../../models/auth-admin.models';
+import { AuthRoleSummary } from '../../models/auth-admin.models';
 
 @Injectable({ providedIn: 'root' })
 export class RolesAdminService {
@@ -27,9 +27,5 @@ export class RolesAdminService {
 
   delete(id: string): Observable<void> {
     return this.api.delete<void>(`${this.base}/${id}`);
-  }
-
-  assignModules(payload: RoleModuleAssignment): Observable<void> {
-    return this.api.post<void>('/v1/auth/admin/role-modules', payload);
   }
 }

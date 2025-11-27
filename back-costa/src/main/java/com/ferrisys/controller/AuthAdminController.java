@@ -8,6 +8,7 @@ import com.ferrisys.common.entity.user.AuthUserRole;
 import com.ferrisys.common.entity.user.Role;
 import com.ferrisys.common.entity.user.User;
 import com.ferrisys.common.entity.user.UserStatus;
+import com.ferrisys.common.enums.DefaultUserStatus;
 import com.ferrisys.common.exception.impl.NotFoundException;
 import com.ferrisys.repository.AuthUserRoleRepository;
 import com.ferrisys.repository.ModuleLicenseRepository;
@@ -18,9 +19,15 @@ import com.ferrisys.repository.UserRepository;
 import com.ferrisys.service.UserService;
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -37,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/auth/admin")
 @RequiredArgsConstructor
+@Slf4j
 @PreAuthorize(
         "@featureFlagService.enabledForCurrentUser('core-de-autenticacion') and (hasAuthority('MODULE_CORE_DE_AUTENTICACION') or hasRole('ADMIN'))")
 public class AuthAdminController {
@@ -51,29 +59,48 @@ public class AuthAdminController {
 
     // --- Users ---
     @GetMapping("/users")
-    public List<User> listUsers() {
-        return userRepository.findAll();
+    public List<AdminUserResponse> listUsers() {
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<UUID, List<AuthUserRole>> assignments = new HashMap<>();
+        authUserRoleRepository.findAllByUserIdIn(users.stream().map(User::getId).toList())
+                .forEach(assignment -> assignments.computeIfAbsent(assignment.getUser().getId(), key -> new ArrayList<>()).add(assignment));
+
+        return users.stream()
+                .map(user -> mapUser(user, assignments.getOrDefault(user.getId(), Collections.emptyList())))
+                .toList();
     }
 
     @GetMapping("/users/{id}")
-    public User getUser(@PathVariable UUID id) {
-        return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+    public AdminUserResponse getUser(@PathVariable UUID id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+        List<AuthUserRole> assignments = authUserRoleRepository.findAllByUserIdIn(List.of(user.getId()));
+        return mapUser(user, assignments);
     }
 
     @PostMapping("/users")
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@RequestBody AdminUserRequest request) {
+    public AdminUserResponse createUser(@RequestBody AdminUserRequest request) {
         RegisterRequest register = new RegisterRequest();
         register.setUsername(request.username());
         register.setEmail(request.email());
         register.setFullName(request.fullName());
         register.setPassword(request.password());
         userService.registerUser(register);
-        return userRepository.findByUsername(request.username()).orElseThrow(() -> new NotFoundException("User not created"));
+        User user = userRepository.findByUsername(request.username()).orElseThrow(() -> new NotFoundException("User not created"));
+        if (request.status() != null) {
+            user.setStatus(UserStatus.fromCode(request.status()));
+            user = userRepository.save(user);
+        }
+        syncUserRoles(user, request.roleIds());
+        return mapUser(user, authUserRoleRepository.findAllByUserIdIn(List.of(user.getId())));
     }
 
     @PutMapping("/users/{id}")
-    public User updateUser(@PathVariable UUID id, @RequestBody AdminUserRequest request) {
+    public AdminUserResponse updateUser(@PathVariable UUID id, @RequestBody AdminUserRequest request) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         user.setUsername(request.username());
         user.setEmail(request.email());
@@ -82,7 +109,9 @@ public class AuthAdminController {
         if (request.password() != null && !request.password().isBlank()) {
             user.setPassword(new BCryptPasswordEncoder().encode(request.password()));
         }
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        syncUserRoles(saved, request.roleIds());
+        return mapUser(saved, authUserRoleRepository.findAllByUserIdIn(List.of(saved.getId())));
     }
 
     @DeleteMapping("/users/{id}")
@@ -98,15 +127,8 @@ public class AuthAdminController {
     @Transactional
     public void assignUserRole(@RequestBody UserRoleRequest request) {
         User user = userRepository.findById(request.userId()).orElseThrow(() -> new NotFoundException("User not found"));
-        Role role = roleRepository.findById(request.roleId()).orElseThrow(() -> new NotFoundException("Role not found"));
-
-        authUserRoleRepository.findByUserId(user.getId()).ifPresent(existing -> authUserRoleRepository.deleteById(existing.getId()));
-        AuthUserRole assignment = AuthUserRole.builder()
-                .user(user)
-                .role(role)
-                .status(1)
-                .build();
-        authUserRoleRepository.save(assignment);
+        roleRepository.findById(request.roleId()).orElseThrow(() -> new NotFoundException("Role not found"));
+        syncUserRoles(user, List.of(request.roleId()));
     }
 
     // --- Roles ---
@@ -191,26 +213,32 @@ public class AuthAdminController {
 
     // --- Role Modules ---
     @GetMapping("/role-modules")
-    public List<AuthRoleModule> listRoleModules() {
-        return roleModuleRepository.findAll();
+    public List<RoleModulesResponse> listRoleModules() {
+        try {
+            return roleRepository.findAll().stream()
+                    .map(role -> new RoleModulesResponse(
+                            role.getId(),
+                            role.getName(),
+                            roleModuleRepository.findActiveModuleIdsByRoleId(role.getId())))
+                    .collect(Collectors.toList());
+        } catch (Exception ex) {
+            log.error("Error retrieving role modules", ex);
+            throw ex;
+        }
     }
 
     @PostMapping("/role-modules")
     @Transactional
     public void saveRoleModules(@RequestBody RoleModuleRequest request) {
         Role role = roleRepository.findById(request.roleId()).orElseThrow(() -> new NotFoundException("Role not found"));
-        roleModuleRepository.deleteByRole(role);
-        if (request.moduleIds() != null) {
-            for (UUID moduleId : request.moduleIds()) {
-                AuthModule module = moduleRepository.findById(moduleId).orElseThrow(() -> new NotFoundException("Module not found"));
-                AuthRoleModule assignment = AuthRoleModule.builder()
-                        .role(role)
-                        .module(module)
-                        .status(1)
-                        .build();
-                roleModuleRepository.save(assignment);
-            }
-        }
+        persistRoleModules(role, request.moduleIds());
+    }
+
+    @PutMapping("/roles/{roleId}/modules")
+    @Transactional
+    public void updateRoleModules(@PathVariable UUID roleId, @RequestBody RoleModulesUpdateRequest request) {
+        Role role = roleRepository.findById(roleId).orElseThrow(() -> new NotFoundException("Role not found"));
+        persistRoleModules(role, request.moduleIds());
     }
 
     // --- Module Licenses ---
@@ -232,10 +260,66 @@ public class AuthAdminController {
         return moduleLicenseRepository.save(license);
     }
 
-    public record AdminUserRequest(String username, String email, String fullName, String password, Integer status) {}
+    private void syncUserRoles(User user, List<UUID> roleIds) {
+        authUserRoleRepository.deleteByUserId(user.getId());
+        if (roleIds == null || roleIds.isEmpty()) {
+            return;
+        }
+
+        for (UUID roleId : roleIds) {
+            Role role = roleRepository.findById(roleId).orElseThrow(() -> new NotFoundException("Role not found"));
+            AuthUserRole assignment = AuthUserRole.builder()
+                    .user(user)
+                    .role(role)
+                    .status(1)
+                    .build();
+            authUserRoleRepository.save(assignment);
+        }
+    }
+
+    private void persistRoleModules(Role role, List<UUID> moduleIds) {
+        roleModuleRepository.deleteByRole(role);
+        if (moduleIds == null || moduleIds.isEmpty()) {
+            return;
+        }
+
+        for (UUID moduleId : moduleIds) {
+            AuthModule module = moduleRepository.findById(moduleId).orElseThrow(() -> new NotFoundException("Module not found"));
+            AuthRoleModule assignment = AuthRoleModule.builder()
+                    .role(role)
+                    .module(module)
+                    .status(1)
+                    .build();
+            roleModuleRepository.save(assignment);
+        }
+    }
+
+    private AdminUserResponse mapUser(User user, List<AuthUserRole> assignments) {
+        List<AuthUserRole> activeAssignments = assignments.stream()
+                .filter(assignment -> assignment.getStatus() == null || assignment.getStatus() == 1)
+                .toList();
+
+        List<UUID> roleIds = activeAssignments.stream().map(a -> a.getRole().getId()).toList();
+        List<String> roleNames = activeAssignments.stream().map(a -> a.getRole().getName()).toList();
+        int statusCode = user.getStatus() != null && DefaultUserStatus.ACTIVE.getId().equals(user.getStatus().getStatusId()) ? 1 : 0;
+
+        return new AdminUserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getFullName(),
+                statusCode,
+                roleIds,
+                roleNames);
+    }
+
+    public record AdminUserRequest(String username, String email, String fullName, String password, Integer status, List<UUID> roleIds) {}
+    public record AdminUserResponse(UUID id, String username, String email, String fullName, Integer status, List<UUID> roleIds, List<String> roleNames) {}
     public record AdminRoleRequest(String name, String description, Integer status) {}
     public record AdminModuleRequest(String name, String description, Integer status) {}
     public record RoleModuleRequest(UUID roleId, List<UUID> moduleIds) {}
+    public record RoleModulesResponse(UUID roleId, String roleName, List<UUID> assignedModuleIds) {}
+    public record RoleModulesUpdateRequest(List<UUID> moduleIds) {}
     public record UserRoleRequest(UUID userId, UUID roleId) {}
     public record ModuleLicenseRequest(UUID tenantId, UUID moduleId, Boolean enabled, OffsetDateTime expiresAt) {}
 }

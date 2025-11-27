@@ -29,6 +29,7 @@ import {
   AppstoreAddOutline,
   SafetyOutline,
   SafetyCertificateOutline,
+  UserAddOutline,
   
   // 🚨 ÍCONOS FALTANTES QUE ESTÁN CAUSANDO EL PROBLEMA:
   PlusOutline,           // Para el botón "Nueva Categoría"
@@ -80,6 +81,7 @@ export const icons = [
   AppstoreAddOutline,
   SafetyOutline,
   SafetyCertificateOutline,
+  UserAddOutline,
   
   // 🚨 ÍCONOS CRÍTICOS FALTANTES:
   PlusOutline,           // MUY IMPORTANTE - botón nueva categoría
