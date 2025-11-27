@@ -16,6 +16,12 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     children: [
       {
+        path: 'auth',
+        canActivate: [ModuleGuard],
+        data: { moduleKey: 'CORE DE AUTENTICACION' },
+        loadChildren: () => import('./pages/auth-admin/auth-admin.routes').then(m => m.AUTH_ADMIN_ROUTES),
+      },
+      {
         path: 'welcome',
         loadChildren: () => import('./pages/welcome/welcome.routes').then(m => m.WELCOME_ROUTES)
       },
