@@ -29,10 +29,10 @@ export interface RoleModuleAssignment {
   moduleIds: string[];
 }
 
-export interface RoleModulesResponse {
+export interface RoleModulesDto {
   roleId: string;
   roleName: string;
-  assignedModuleIds: string[];
+  moduleIds: string[];
 }
 
 export interface UserRoleAssignment {
