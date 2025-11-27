@@ -2,7 +2,7 @@
 
 | Módulo | Backend (API) | Frontend (UI) | Comentarios |
 |---|---|---|---|
-| Core de Autenticación | Implementado | Implementado | Login/register, JWT y listado de módulos habilitados. |
+| Core de Autenticación | Implementado | Implementado | Login/register, JWT, listado de módulos habilitados y panel admin (usuarios, roles, módulos, permisos, licencias). |
 | Sucursales y Organizaciones | N/A | N/A | No se encontraron controladores ni pantallas. |
 | Datos Maestros | N/A | N/A | Sin endpoints ni vistas específicas. |
 | Productos y Servicios | Implementado | Parcial | CRUD de productos/categorías dentro de Inventario; UI inicial en `/main/products`. |
