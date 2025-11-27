@@ -1,100 +1,36 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
-import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
 import { AuthRoleSummary } from '../../../core/models/auth-admin.models';
+import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
 import { RoleModulesAssignmentComponent } from './role-modules-assignment.component';
 
 @Component({
   standalone: true,
   selector: 'app-roles-list',
-  template: `
-    <div class="page-header">
-      <div>
-        <h2>Roles</h2>
-        <p class="subtitle">Agrupa permisos y módulos para los usuarios.</p>
-      </div>
-      <button nz-button nzType="primary" (click)="goCreate()">
-        <span nz-icon nzType="plus"></span>
-        Nuevo Rol
-      </button>
-    </div>
-
-    <nz-card nzBordered>
-      <nz-table
-        [nzData]="roles()"
-        [nzLoading]="loading()"
-        nzBordered
-        [nzPageSize]="10"
-        nzShowPagination
-        nzPaginationPosition="bottom"
-        [nzNoResult]="noRoles"
-      >
-        <thead>
-          <tr>
-            <th>Rol</th>
-            <th>Descripción</th>
-            <th>Estado</th>
-            <th class="actions-col">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let role of roles()">
-            <td class="text-strong">{{ role.name }}</td>
-            <td>{{ role.description || 'Sin descripción' }}</td>
-            <td>
-              <nz-tag [nzColor]="role.status === 1 ? 'green' : 'default'">{{ role.status === 1 ? 'Activo' : 'Inactivo' }}</nz-tag>
-            </td>
-            <td class="actions">
-              <button nz-button nzType="link" (click)="edit(role.id)">
-                <span nz-icon nzType="edit"></span>
-                Editar
-              </button>
-              <app-role-modules-assignment [roleId]="role.id" (completed)="reload()"></app-role-modules-assignment>
-              <button nz-button nzType="link" nzDanger (click)="remove(role.id)">
-                <span nz-icon nzType="delete"></span>
-                Eliminar
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </nz-table>
-      <ng-template #noRoles>
-        <div class="empty-state">
-          <p>No hay roles registrados todavía.</p>
-          <button nz-button nzType="dashed" (click)="goCreate()">
-            <span nz-icon nzType="plus"></span>
-            Crear el primero
-          </button>
-        </div>
-      </ng-template>
-    </nz-card>
-  `,
+  templateUrl: './roles-list.component.html',
+  styleUrls: ['./roles-list.component.css'],
   imports: [
     CommonModule,
+    FormsModule,
     NzTableModule,
     NzButtonModule,
     NzTagModule,
     NzCardModule,
     NzIconModule,
+    NzInputModule,
+    NzPopconfirmModule,
     RoleModulesAssignmentComponent,
-  ],
-  styles: [
-    `
-      .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-      .subtitle { color: #6b7280; margin: 0; }
-      .actions { display: flex; gap: 8px; align-items: center; }
-      .actions-col { width: 220px; }
-      .text-strong { font-weight: 600; }
-      .empty-state { text-align: center; padding: 24px 0; color: #6b7280; display: flex; flex-direction: column; gap: 12px; }
-    `,
   ],
 })
 export class RolesListComponent implements OnInit {
@@ -103,7 +39,10 @@ export class RolesListComponent implements OnInit {
   private readonly message = inject(NzMessageService);
 
   readonly roles = signal<AuthRoleSummary[]>([]);
+  readonly filteredRoles = signal<AuthRoleSummary[]>([]);
   readonly loading = signal(false);
+
+  searchTerm = '';
 
   ngOnInit(): void {
     this.reload();
@@ -112,14 +51,17 @@ export class RolesListComponent implements OnInit {
   reload(): void {
     this.loading.set(true);
     this.service.list().subscribe({
-      next: (data) => this.roles.set(data ?? []),
+      next: (data) => {
+        this.roles.set(data ?? []);
+        this.applyFilters();
+      },
       error: () => this.message.error('No se pudieron cargar los roles'),
       complete: () => this.loading.set(false),
     });
   }
 
   goCreate(): void {
-    this.router.navigate(['/main/auth/roles/create']);
+    this.router.navigate(['/main/auth/roles/new']);
   }
 
   edit(id: string): void {
@@ -136,5 +78,28 @@ export class RolesListComponent implements OnInit {
       error: () => this.message.error('No se pudo eliminar el rol'),
       complete: () => this.loading.set(false),
     });
+  }
+
+  onSearch(value: string): void {
+    this.searchTerm = value;
+    this.applyFilters();
+  }
+
+  getStatusColor(status: number): string {
+    return status === 1 ? 'green' : 'red';
+  }
+
+  private applyFilters(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+    let data = [...this.roles()];
+
+    if (term) {
+      data = data.filter((role) =>
+        role.name.toLowerCase().includes(term) ||
+        (role.description ?? '').toLowerCase().includes(term),
+      );
+    }
+
+    this.filteredRoles.set(data);
   }
 }

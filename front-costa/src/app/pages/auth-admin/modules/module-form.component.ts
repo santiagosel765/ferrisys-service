@@ -97,7 +97,7 @@ export class ModuleFormComponent implements OnInit {
     request$.subscribe({
       next: () => {
         this.message.success('Módulo guardado');
-        this.router.navigate(['/main/auth/modules']);
+        this.router.navigate(['/main/auth'], { queryParams: { tab: 'modules' } });
       },
       error: () => this.message.error('No se pudo guardar el módulo'),
       complete: () => this.saving.set(false),
@@ -105,6 +105,6 @@ export class ModuleFormComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/main/auth/modules']);
+    this.router.navigate(['/main/auth'], { queryParams: { tab: 'modules' } });
   }
 }

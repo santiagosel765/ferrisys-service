@@ -1,53 +1,62 @@
 import { Routes } from '@angular/router';
+import { AuthAdminPanelComponent } from './auth-admin-panel.component';
 
 export const AUTH_ADMIN_ROUTES: Routes = [
   {
+    path: '',
+    component: AuthAdminPanelComponent,
+  },
+  {
     path: 'users',
-    loadComponent: () => import('./users/users-list.component').then(m => m.UsersListComponent),
-  },
-  {
-    path: 'users/new',
-    loadComponent: () => import('./users/user-form.component').then(m => m.UserFormComponent),
-  },
-  {
-    path: 'users/:id/edit',
-    loadComponent: () => import('./users/user-form.component').then(m => m.UserFormComponent),
+    component: AuthAdminPanelComponent,
+    data: { tab: 'users' },
   },
   {
     path: 'roles',
-    loadComponent: () => import('./roles/roles-list.component').then(m => m.RolesListComponent),
-  },
-  {
-    path: 'roles/new',
-    loadComponent: () => import('./roles/role-form.component').then(m => m.RoleFormComponent),
-  },
-  {
-    path: 'roles/:id/edit',
-    loadComponent: () => import('./roles/role-form.component').then(m => m.RoleFormComponent),
+    component: AuthAdminPanelComponent,
+    data: { tab: 'roles' },
   },
   {
     path: 'modules',
-    loadComponent: () => import('./modules/modules-list.component').then(m => m.ModulesListComponent),
-  },
-  {
-    path: 'modules/new',
-    loadComponent: () => import('./modules/module-form.component').then(m => m.ModuleFormComponent),
-  },
-  {
-    path: 'modules/:id/edit',
-    loadComponent: () => import('./modules/module-form.component').then(m => m.ModuleFormComponent),
+    component: AuthAdminPanelComponent,
+    data: { tab: 'modules' },
   },
   {
     path: 'permissions',
-    loadComponent: () => import('./permissions/permissions-matrix.component').then(m => m.PermissionsMatrixComponent),
+    component: AuthAdminPanelComponent,
+    data: { tab: 'permissions' },
   },
   {
     path: 'licenses',
-    loadComponent: () => import('./licenses/module-licenses.component').then(m => m.ModuleLicensesComponent),
+    component: AuthAdminPanelComponent,
+    data: { tab: 'permissions' },
   },
   {
-    path: '',
-    pathMatch: 'full',
-    redirectTo: 'users',
+    path: 'users/new',
+    loadComponent: () => import('./users/user-form.component').then((m) => m.UserFormComponent),
+  },
+  {
+    path: 'users/:id/edit',
+    loadComponent: () => import('./users/user-form.component').then((m) => m.UserFormComponent),
+  },
+  {
+    path: 'roles/new',
+    loadComponent: () => import('./roles/role-form.component').then((m) => m.RoleFormComponent),
+  },
+  {
+    path: 'roles/:id/edit',
+    loadComponent: () => import('./roles/role-form.component').then((m) => m.RoleFormComponent),
+  },
+  {
+    path: 'modules/new',
+    loadComponent: () => import('./modules/module-form.component').then((m) => m.ModuleFormComponent),
+  },
+  {
+    path: 'modules/:id/edit',
+    loadComponent: () => import('./modules/module-form.component').then((m) => m.ModuleFormComponent),
+  },
+  {
+    path: '**',
+    redirectTo: '',
   },
 ];
