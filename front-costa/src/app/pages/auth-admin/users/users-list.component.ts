@@ -34,7 +34,7 @@ import { UserRoleAssignmentComponent } from './user-role-assignment.component';
         nzBordered
         [nzPageSize]="10"
         nzShowPagination
-        nzPaginationPosition="bottomRight"
+        nzPaginationPosition="bottom"
         [nzNoResult]="noUsers"
       >
         <thead>

@@ -34,7 +34,7 @@ import { RoleModulesAssignmentComponent } from './role-modules-assignment.compon
         nzBordered
         [nzPageSize]="10"
         nzShowPagination
-        nzPaginationPosition="bottomRight"
+        nzPaginationPosition="bottom"
         [nzNoResult]="noRoles"
       >
         <thead>
