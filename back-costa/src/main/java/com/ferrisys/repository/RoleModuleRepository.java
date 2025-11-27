@@ -18,4 +18,6 @@ public interface RoleModuleRepository extends JpaRepository<AuthRoleModule, UUID
 
     @Query("SELECT rm.module.id FROM AuthRoleModule rm WHERE rm.role.id = :roleId AND rm.status = 1")
     List<UUID> findActiveModuleIdsByRoleId(UUID roleId);
+
+    List<AuthRoleModule> findByRoleIdAndStatus(UUID roleId, Integer status);
 }

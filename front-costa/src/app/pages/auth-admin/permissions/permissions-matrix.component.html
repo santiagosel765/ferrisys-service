@@ -9,7 +9,7 @@
       nz-button
       nzType="primary"
       (click)="save()"
-      [disabled]="!selectedRoleId() || saving() || !hasChanges()"
+      [disabled]="!selectedRoleId() || saving() || !hasChanges() || isLoading()"
       [nzLoading]="saving()"
     >
       <span nz-icon nzType="save"></span>
@@ -25,7 +25,7 @@
         nzPlaceHolder="Selecciona un rol"
         [ngModel]="selectedRoleId()"
         (ngModelChange)="onRoleChange($event)"
-        [nzLoading]="loading()"
+        [nzLoading]="isLoading()"
       >
         <nz-option *ngFor="let role of roles()" [nzValue]="role.id" [nzLabel]="role.name"></nz-option>
       </nz-select>
@@ -33,14 +33,14 @@
   </div>
 
   <ng-container *ngIf="selectedRoleId(); else emptyState">
-    <div class="dual-list" [class.is-loading]="loading()">
+    <div class="dual-list" [class.is-loading]="isLoading()">
       <div class="list-column">
         <div class="list-header">
           <div>
             <p class="eyebrow">Módulos</p>
             <h4>No asignados</h4>
           </div>
-          <nz-spin *ngIf="loading()" nzSimple></nz-spin>
+          <nz-spin *ngIf="isLoading()" nzSimple></nz-spin>
         </div>
         <div class="list-body">
           <label class="list-item" *ngFor="let module of availableModules()">
@@ -58,14 +58,28 @@
       </div>
 
       <div class="actions-column">
-        <button nz-button nzType="default" (click)="moveToAssigned()" [disabled]="!availableSelection().size">
+        <button
+          nz-button
+          nzType="default"
+          (click)="moveToAssigned()"
+          [disabled]="!availableSelection().size || isLoading()"
+        >
           Asignar →
         </button>
-        <button nz-button nzType="default" (click)="moveToAvailable()" [disabled]="!assignedSelection().size">
+        <button
+          nz-button
+          nzType="default"
+          (click)="moveToAvailable()"
+          [disabled]="!assignedSelection().size || isLoading()"
+        >
           ← Quitar
         </button>
-        <button nz-button nzType="link" (click)="assignAll()" [disabled]="!modules().length">Elegir todos</button>
-        <button nz-button nzType="link" (click)="clearAll()" [disabled]="!currentAssigned().length">Limpiar</button>
+        <button nz-button nzType="link" (click)="assignAll()" [disabled]="!modules().length || isLoading()">
+          Elegir todos
+        </button>
+        <button nz-button nzType="link" (click)="clearAll()" [disabled]="!currentAssigned().length || isLoading()">
+          Limpiar
+        </button>
       </div>
 
       <div class="list-column">
@@ -74,7 +88,7 @@
             <p class="eyebrow">Módulos</p>
             <h4>Asignados</h4>
           </div>
-          <nz-spin *ngIf="loading()" nzSimple></nz-spin>
+          <nz-spin *ngIf="isLoading()" nzSimple></nz-spin>
         </div>
         <div class="list-body">
           <label class="list-item" *ngFor="let module of assignedModules()">

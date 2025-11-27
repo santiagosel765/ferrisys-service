@@ -1,6 +1,7 @@
 package com.ferrisys.controller;
 
 import com.ferrisys.common.dto.RegisterRequest;
+import com.ferrisys.common.dto.auth.RoleModulesDto;
 import com.ferrisys.common.entity.license.ModuleLicense;
 import com.ferrisys.common.entity.user.AuthModule;
 import com.ferrisys.common.entity.user.AuthRoleModule;
@@ -25,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -213,18 +214,11 @@ public class AuthAdminController {
 
     // --- Role Modules ---
     @GetMapping("/role-modules")
-    public List<RoleModulesResponse> listRoleModules() {
-        try {
-            return roleRepository.findAll().stream()
-                    .map(role -> new RoleModulesResponse(
-                            role.getId(),
-                            role.getName(),
-                            roleModuleRepository.findActiveModuleIdsByRoleId(role.getId())))
-                    .collect(Collectors.toList());
-        } catch (Exception ex) {
-            log.error("Error retrieving role modules", ex);
-            throw ex;
-        }
+    @Transactional
+    public RoleModulesDto getRoleModules(@RequestParam("roleId") UUID roleId) {
+        Role role = roleRepository.findById(roleId).orElseThrow(() -> new NotFoundException("Role not found"));
+        List<AuthRoleModule> assignments = roleModuleRepository.findByRoleIdAndStatus(roleId, 1);
+        return buildRoleModulesDto(role, assignments);
     }
 
     @PostMapping("/role-modules")
@@ -234,11 +228,13 @@ public class AuthAdminController {
         persistRoleModules(role, request.moduleIds());
     }
 
-    @PutMapping("/roles/{roleId}/modules")
+    @PutMapping("/role-modules/{roleId}")
     @Transactional
-    public void updateRoleModules(@PathVariable UUID roleId, @RequestBody RoleModulesUpdateRequest request) {
+    public RoleModulesDto updateRoleModules(@PathVariable UUID roleId, @RequestBody RoleModulesDto request) {
         Role role = roleRepository.findById(roleId).orElseThrow(() -> new NotFoundException("Role not found"));
-        persistRoleModules(role, request.moduleIds());
+        persistRoleModules(role, request.getModuleIds());
+        List<AuthRoleModule> assignments = roleModuleRepository.findByRoleIdAndStatus(roleId, 1);
+        return buildRoleModulesDto(role, assignments);
     }
 
     // --- Module Licenses ---
@@ -294,6 +290,19 @@ public class AuthAdminController {
         }
     }
 
+    private RoleModulesDto buildRoleModulesDto(Role role, List<AuthRoleModule> assignments) {
+        List<UUID> moduleIds = assignments.stream()
+                .filter(assignment -> assignment.getStatus() == null || assignment.getStatus() == 1)
+                .map(assignment -> assignment.getModule().getId())
+                .toList();
+
+        return RoleModulesDto.builder()
+                .roleId(role.getId())
+                .roleName(role.getName())
+                .moduleIds(moduleIds)
+                .build();
+    }
+
     private AdminUserResponse mapUser(User user, List<AuthUserRole> assignments) {
         List<AuthUserRole> activeAssignments = assignments.stream()
                 .filter(assignment -> assignment.getStatus() == null || assignment.getStatus() == 1)
@@ -318,8 +327,6 @@ public class AuthAdminController {
     public record AdminRoleRequest(String name, String description, Integer status) {}
     public record AdminModuleRequest(String name, String description, Integer status) {}
     public record RoleModuleRequest(UUID roleId, List<UUID> moduleIds) {}
-    public record RoleModulesResponse(UUID roleId, String roleName, List<UUID> assignedModuleIds) {}
-    public record RoleModulesUpdateRequest(List<UUID> moduleIds) {}
     public record UserRoleRequest(UUID userId, UUID roleId) {}
     public record ModuleLicenseRequest(UUID tenantId, UUID moduleId, Boolean enabled, OffsetDateTime expiresAt) {}
 }
