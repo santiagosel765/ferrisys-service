@@ -97,7 +97,7 @@ export class RoleFormComponent implements OnInit {
     request$.subscribe({
       next: () => {
         this.message.success('Rol guardado');
-        this.router.navigate(['/main/auth/roles']);
+        this.router.navigate(['/main/auth'], { queryParams: { tab: 'roles' } });
       },
       error: () => this.message.error('No se pudo guardar el rol'),
       complete: () => this.saving.set(false),
@@ -105,6 +105,6 @@ export class RoleFormComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/main/auth/roles']);
+    this.router.navigate(['/main/auth'], { queryParams: { tab: 'roles' } });
   }
 }

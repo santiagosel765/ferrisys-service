@@ -148,7 +148,7 @@ export class UserFormComponent implements OnInit {
     request$.subscribe({
       next: () => {
         this.message.success('Usuario guardado');
-        this.router.navigate(['/main/auth/users']);
+        this.router.navigate(['/main/auth'], { queryParams: { tab: 'users' } });
       },
       error: () => this.message.error('No se pudo guardar el usuario'),
       complete: () => this.saving.set(false),
@@ -156,6 +156,6 @@ export class UserFormComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/main/auth/users']);
+    this.router.navigate(['/main/auth'], { queryParams: { tab: 'users' } });
   }
 }
