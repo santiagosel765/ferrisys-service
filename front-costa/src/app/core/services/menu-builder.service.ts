@@ -86,37 +86,37 @@ export class MenuBuilderService {
     {
       title: 'Core de Autenticación',
       icon: 'safety',
-      requiredModule: 'CORE DE AUTENTICACION',
+      requiredModule: 'CORE_DE_AUTENTICACION',
       items: [
         {
           label: 'Usuarios',
           route: '/main/auth/users',
           icon: 'user',
-          requiredModule: 'CORE DE AUTENTICACION',
+          requiredModule: 'CORE_DE_AUTENTICACION',
         },
         {
           label: 'Roles',
           route: '/main/auth/roles',
           icon: 'team',
-          requiredModule: 'CORE DE AUTENTICACION',
+          requiredModule: 'CORE_DE_AUTENTICACION',
         },
         {
           label: 'Módulos',
           route: '/main/auth/modules',
           icon: 'cluster',
-          requiredModule: 'CORE DE AUTENTICACION',
+          requiredModule: 'CORE_DE_AUTENTICACION',
         },
         {
           label: 'Permisos',
           route: '/main/auth/permissions',
           icon: 'audit',
-          requiredModule: 'CORE DE AUTENTICACION',
+          requiredModule: 'CORE_DE_AUTENTICACION',
         },
         {
           label: 'Licencias',
           route: '/main/auth/licenses',
           icon: 'key',
-          requiredModule: 'CORE DE AUTENTICACION',
+          requiredModule: 'CORE_DE_AUTENTICACION',
         },
       ],
     },

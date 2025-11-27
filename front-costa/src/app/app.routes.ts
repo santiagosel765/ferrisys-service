@@ -18,7 +18,7 @@ export const routes: Routes = [
       {
         path: 'auth',
         canActivate: [ModuleGuard],
-        data: { moduleKey: 'CORE DE AUTENTICACION' },
+        data: { moduleKey: 'CORE_DE_AUTENTICACION' },
         loadChildren: () => import('./pages/auth-admin/auth-admin.routes').then(m => m.AUTH_ADMIN_ROUTES),
       },
       {

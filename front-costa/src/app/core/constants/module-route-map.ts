@@ -20,6 +20,7 @@ export const MODULE_ALIAS: Record<string, string> = {
 };
 
 export const MODULE_ROUTE_MAP: Record<string, string> = {
+  CORE_DE_AUTENTICACION: '/main/auth/users',
   INVENTORY: '/main/inventory',
   PRODUCT: '/main/products',
   CATEGORY: '/main/categories',
@@ -30,6 +31,7 @@ export const MODULE_ROUTE_MAP: Record<string, string> = {
 };
 
 export const MODULE_LABEL_MAP: Record<string, string> = {
+  CORE_DE_AUTENTICACION: 'Core de Autenticación',
   INVENTORY: 'Inventario',
   PRODUCT: 'Productos',
   CATEGORY: 'Categorías',
@@ -40,6 +42,7 @@ export const MODULE_LABEL_MAP: Record<string, string> = {
 };
 
 export const MODULE_ICON_MAP: Record<string, string> = {
+  CORE_DE_AUTENTICACION: 'safety',
   INVENTORY: 'database',
   PRODUCT: 'shopping',
   CATEGORY: 'tags',
