@@ -60,5 +60,8 @@ Aplicación SaaS de ferretería con backend Spring Boot y frontend Angular. Prov
 | Proveedores | GET | `/v1/providers/list` | `ProviderController` | `ProviderService` | Listado paginado de proveedores. |
 | Cotizaciones | POST | `/v1/quotes/save` | `QuoteController` | `QuoteService` | Alta/edición de cotización. |
 | Compras | POST | `/v1/purchases/save` | `PurchaseController` | `PurchaseService` | Alta/edición de compra. |
+| Core Auth Admin | GET/POST/PUT/DELETE | `/v1/auth/admin/users`, `/v1/auth/admin/roles`, `/v1/auth/admin/modules` | `AuthAdminController` | `UserService` + repositorios JPA | CRUD administrativo de usuarios, roles y módulos con protección `MODULE_CORE_DE_AUTENTICACION`. |
+| Core Auth Admin | POST | `/v1/auth/admin/role-modules`, `/v1/auth/admin/user-roles` | `AuthAdminController` | `RoleModuleRepository` / `AuthUserRoleRepository` | Asigna módulos a roles y roles a usuarios. |
+| Core Auth Admin | GET/POST | `/v1/auth/admin/module-licenses` | `AuthAdminController` | `ModuleLicenseRepository` | Licencias de módulos por tenant. |
 
 > Los endpoints de negocio usan `@ConditionalOnProperty` para activarse por módulo y `@PreAuthorize` para validar licencias/authorities antes de ejecutar la lógica.
