@@ -21,7 +21,9 @@ import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
       nzPlaceHolder="Módulos"
       style="min-width: 220px;"
     ></nz-select>
-    <button nz-button nzType="default" (click)="assign()" [disabled]="!selectedModules?.length">Guardar</button>
+    <button nz-button nzType="default" (click)="assign()" [disabled]="!selectedModules || !selectedModules.length">
+      Guardar
+    </button>
   `,
 })
 export class RoleModulesAssignmentComponent implements OnInit {

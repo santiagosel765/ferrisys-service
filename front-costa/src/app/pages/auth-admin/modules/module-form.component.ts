@@ -88,7 +88,10 @@ export class ModuleFormComponent implements OnInit {
     const { id, ...rest } = this.form.getRawValue();
     this.saving.set(true);
 
-    const payload: Partial<AuthModuleSummary> = { ...rest };
+    const payload: Partial<AuthModuleSummary> = {
+      ...rest,
+      status: rest.status ?? 1,
+    };
     const request$ = this.isEdit() && id ? this.service.update(id, payload) : this.service.create(payload);
 
     request$.subscribe({
