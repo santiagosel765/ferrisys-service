@@ -25,6 +25,9 @@
   - `GET/POST /module-licenses` para licencias de módulo.
 - **Repositorios utilizados:** `UserRepository`, `RoleRepository`, `ModuleRepository`, `RoleModuleRepository`, `AuthUserRoleRepository`, `ModuleLicenseRepository`.
 
+### Notas sobre estado de usuarios
+- Los formularios trabajan con un status numérico (1 activo / 0 inactivo) y el backend lo convierte a `UserStatus` usando los IDs de `DefaultUserStatus` (`ACTIVE`/`INACTIVE`).
+
 ## Consideraciones
 - Las peticiones frontend utilizan `ApiService`, por lo que heredan headers JWT del interceptor existente.
 - Los nombres de módulo se normalizan a mayúsculas y guiones bajos (e.g. `CORE_DE_AUTENTICACION`) para ser compatibles con `ModuleGuard` y authorities.

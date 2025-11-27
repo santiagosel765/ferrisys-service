@@ -7,6 +7,7 @@ import com.ferrisys.common.entity.user.AuthRoleModule;
 import com.ferrisys.common.entity.user.AuthUserRole;
 import com.ferrisys.common.entity.user.Role;
 import com.ferrisys.common.entity.user.User;
+import com.ferrisys.common.entity.user.UserStatus;
 import com.ferrisys.common.exception.impl.NotFoundException;
 import com.ferrisys.repository.AuthUserRoleRepository;
 import com.ferrisys.repository.ModuleLicenseRepository;
@@ -76,7 +77,7 @@ public class AuthAdminController {
         user.setUsername(request.username());
         user.setEmail(request.email());
         user.setFullName(request.fullName());
-        user.setStatus(request.status());
+        user.setStatus(UserStatus.fromCode(request.status()));
         if (request.password() != null && !request.password().isBlank()) {
             user.setPassword(new BCryptPasswordEncoder().encode(request.password()));
         }

@@ -136,7 +136,13 @@ export class ModuleLicensesComponent implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const { tenantId, moduleId, enabled, expiresAt } = this.form.getRawValue();
+    const payload: ModuleLicenseDTO = {
+      tenantId,
+      moduleId,
+      enabled: enabled ?? false,
+      expiresAt: expiresAt ?? null,
+    };
     this.licensesService.create(payload).subscribe({
       next: () => {
         this.message.success('Licencia creada');

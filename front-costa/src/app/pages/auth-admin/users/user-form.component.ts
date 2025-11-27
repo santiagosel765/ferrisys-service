@@ -106,7 +106,10 @@ export class UserFormComponent implements OnInit {
     const { id, password, ...rest } = this.form.getRawValue();
     this.saving.set(true);
 
-    const payload: Partial<AuthUserSummary> & { password?: string } = { ...rest };
+    const payload: Partial<AuthUserSummary> & { password?: string } = {
+      ...rest,
+      status: rest.status ?? 1,
+    };
     if (!this.isEdit()) {
       payload['password'] = password || undefined;
     }
