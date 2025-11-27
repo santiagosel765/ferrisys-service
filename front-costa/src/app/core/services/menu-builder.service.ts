@@ -89,33 +89,9 @@ export class MenuBuilderService {
       requiredModule: 'CORE_DE_AUTENTICACION',
       items: [
         {
-          label: 'Usuarios',
-          route: '/main/auth/users',
-          icon: 'user',
-          requiredModule: 'CORE_DE_AUTENTICACION',
-        },
-        {
-          label: 'Roles',
-          route: '/main/auth/roles',
-          icon: 'team',
-          requiredModule: 'CORE_DE_AUTENTICACION',
-        },
-        {
-          label: 'Módulos',
-          route: '/main/auth/modules',
-          icon: 'cluster',
-          requiredModule: 'CORE_DE_AUTENTICACION',
-        },
-        {
-          label: 'Permisos',
-          route: '/main/auth/permissions',
-          icon: 'audit',
-          requiredModule: 'CORE_DE_AUTENTICACION',
-        },
-        {
-          label: 'Licencias',
-          route: '/main/auth/licenses',
-          icon: 'key',
+          label: 'Panel',
+          route: '/main/auth',
+          icon: 'appstore',
           requiredModule: 'CORE_DE_AUTENTICACION',
         },
       ],

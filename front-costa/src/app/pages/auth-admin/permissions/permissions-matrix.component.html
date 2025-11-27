@@ -1,0 +1,32 @@
+<nz-card nzBordered class="section-card">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Seguridad</p>
+      <h3 class="section-title">Matriz de permisos</h3>
+      <p class="section-subtitle">Asigna módulos disponibles por rol.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="saveAll()" [disabled]="saving() || loading()">
+      <span nz-icon nzType="save"></span>
+      Guardar cambios
+    </button>
+  </div>
+
+  <div class="matrix-wrapper">
+    <nz-table nzBordered [nzData]="roles()" [nzLoading]="loading()" [nzScroll]="{ x: '100%' }">
+      <thead>
+        <tr>
+          <th class="sticky-col">Rol</th>
+          <th *ngFor="let module of modules()" class="module-col">{{ module.name }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let role of roles()">
+          <td class="sticky-col">{{ role.name }}</td>
+          <td *ngFor="let module of modules()" class="centered-cell">
+            <label nz-checkbox [ngModel]="isChecked(role.id, module.id)" (ngModelChange)="toggle(role.id, module.id, $event)"></label>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</nz-card>

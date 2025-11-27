@@ -1,53 +1,24 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NzTableModule } from 'ng-zorro-antd/table';
-import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzTableModule } from 'ng-zorro-antd/table';
 
+import { AuthModuleSummary, AuthRoleSummary, PermissionMatrixCell } from '../../../core/models/auth-admin.models';
+import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
 import { PermissionsAdminService } from '../../../core/services/auth-admin/permissions-admin.service';
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
-import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
-import { AuthModuleSummary, AuthRoleSummary, PermissionMatrixCell } from '../../../core/models/auth-admin.models';
 
 @Component({
   standalone: true,
   selector: 'app-permissions-matrix',
-  template: `
-    <div class="page-header">
-      <div>
-        <h2>Matriz de permisos</h2>
-        <p class="subtitle">Asigna módulos disponibles por rol.</p>
-      </div>
-      <button nz-button nzType="primary" (click)="saveAll()" [disabled]="saving()">Guardar</button>
-    </div>
-
-    <nz-table nzBordered [nzData]="roles()" [nzLoading]="loading()">
-      <thead>
-        <tr>
-          <th>Rol</th>
-          <th *ngFor="let module of modules()">{{ module.name }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let role of roles()">
-          <td>{{ role.name }}</td>
-          <td *ngFor="let module of modules()">
-            <label nz-checkbox [ngModel]="isChecked(role.id, module.id)" (ngModelChange)="toggle(role.id, module.id, $event)"></label>
-          </td>
-        </tr>
-      </tbody>
-    </nz-table>
-  `,
-  styles: [
-    `
-      .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-      .subtitle { color: #6b7280; margin: 0; }
-      nz-table { overflow-x: auto; display: block; }
-    `,
-  ],
-  imports: [CommonModule, FormsModule, NzTableModule, NzCheckboxModule, NzButtonModule],
+  templateUrl: './permissions-matrix.component.html',
+  styleUrls: ['./permissions-matrix.component.css'],
+  imports: [CommonModule, FormsModule, NzTableModule, NzCheckboxModule, NzButtonModule, NzCardModule, NzIconModule],
 })
 export class PermissionsMatrixComponent implements OnInit {
   private readonly permissionsService = inject(PermissionsAdminService);
