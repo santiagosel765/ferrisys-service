@@ -39,61 +39,66 @@ public class DatabaseBootstrap implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        UserStatus activeStatus = userStatusRepository.findById(ACTIVE_STATUS_ID)
-            .orElseGet(() -> userStatusRepository.save(UserStatus.builder()
-                .statusId(ACTIVE_STATUS_ID)
-                .name("ACTIVE")
-                .description("Usuario activo")
-                .build()));
+        // 1) Status ACTIVO
+        final UserStatus activeStatus = userStatusRepository.findById(ACTIVE_STATUS_ID)
+                .orElseGet(() -> userStatusRepository.save(UserStatus.builder()
+                        .statusId(ACTIVE_STATUS_ID)
+                        .name("ACTIVE")
+                        .description("Usuario activo")
+                        .build()));
 
-        Role adminRole = roleRepository.findByName("ADMIN")
-            .map(existing -> {
-                existing.setDescription("Administrador del sistema");
-                existing.setStatus(1);
-                return existing;
-            })
-            .orElse(Role.builder()
-                .id(ADMIN_ROLE_ID)
-                .name("ADMIN")
-                .description("Administrador del sistema")
-                .status(1)
-                .build());
-        adminRole.setId(ADMIN_ROLE_ID);
+        // 2) Rol ADMIN (crear/actualizar)
+        Role adminRole = roleRepository.findByName("ADMIN").orElse(null);
+        if (adminRole == null) {
+            adminRole = Role.builder()
+                    .id(ADMIN_ROLE_ID)
+                    .name("ADMIN")
+                    .description("Administrador del sistema")
+                    .status(1)
+                    .build();
+        } else {
+            adminRole.setDescription("Administrador del sistema");
+            adminRole.setStatus(1);
+            adminRole.setId(ADMIN_ROLE_ID); // asegurar ID determinista si aplica
+        }
         adminRole = roleRepository.save(adminRole);
 
-        User adminUser = userRepository.findByUsername(ADMIN_USERNAME)
-            .map(existing -> {
-                existing.setPassword(ADMIN_PASSWORD_HASH);
-                existing.setEmail(ADMIN_EMAIL);
-                existing.setFullName(ADMIN_FULL_NAME);
-                existing.setStatus(activeStatus);
-                return existing;
-            })
-            .orElse(User.builder()
-                .id(ADMIN_USER_ID)
-                .username(ADMIN_USERNAME)
-                .password(ADMIN_PASSWORD_HASH)
-                .email(ADMIN_EMAIL)
-                .fullName(ADMIN_FULL_NAME)
-                .status(activeStatus)
-                .build());
-        adminUser.setId(ADMIN_USER_ID);
+        // 3) Usuario admin1 (crear/actualizar)
+        User adminUser = userRepository.findByUsername(ADMIN_USERNAME).orElse(null);
+        if (adminUser == null) {
+            adminUser = User.builder()
+                    .id(ADMIN_USER_ID)
+                    .username(ADMIN_USERNAME)
+                    .password(ADMIN_PASSWORD_HASH)
+                    .email(ADMIN_EMAIL)
+                    .fullName(ADMIN_FULL_NAME)
+                    .status(activeStatus)
+                    .build();
+        } else {
+            adminUser.setPassword(ADMIN_PASSWORD_HASH);
+            adminUser.setEmail(ADMIN_EMAIL);
+            adminUser.setFullName(ADMIN_FULL_NAME);
+            adminUser.setStatus(activeStatus);
+            adminUser.setId(ADMIN_USER_ID); // asegurar ID determinista si aplica
+        }
         adminUser = userRepository.save(adminUser);
 
-        authUserRoleRepository.findByUserId(adminUser.getId())
-            .map(existing -> {
-                existing.setRole(adminRole);
-                existing.setStatus(1);
-                return authUserRoleRepository.save(existing);
-            })
-            .orElseGet(() -> authUserRoleRepository.save(AuthUserRole.builder()
-                .id(UUID.nameUUIDFromBytes((adminUser.getId().toString() + ADMIN_ROLE_ID).getBytes(StandardCharsets.UTF_8)))
-                .user(adminUser)
-                .role(adminRole)
-                .status(1)
-                .build()));
+        // 4) Vincular ADMIN role al admin user (upsert)
+        AuthUserRole link = authUserRoleRepository.findByUserId(adminUser.getId()).orElse(null);
+        if (link == null) {
+            link = AuthUserRole.builder()
+                    .id(UUID.nameUUIDFromBytes((adminUser.getId().toString() + ADMIN_ROLE_ID).getBytes(StandardCharsets.UTF_8)))
+                    .user(adminUser)
+                    .role(adminRole)
+                    .status(1)
+                    .build();
+        } else {
+            link.setRole(adminRole);
+            link.setStatus(1);
+        }
+        authUserRoleRepository.save(link);
 
-        log.info("✅ Seeds aplicados correctamente. Usuario admin: admin1 / admin123");
+        log.info("✅ Seeds aplicados correctamente. Usuario admin: {} / {}", ADMIN_USERNAME, "admin123");
         log.info("✅ Módulos cargados: {}", moduleRepository.count());
     }
 }
