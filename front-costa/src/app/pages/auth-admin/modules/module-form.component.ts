@@ -6,6 +6,9 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 
 import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
 import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
@@ -14,45 +17,66 @@ import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
   standalone: true,
   selector: 'app-module-form',
   template: `
-    <div class="page-header">
-      <div>
-        <h2>{{ isEdit() ? 'Editar módulo' : 'Crear módulo' }}</h2>
-        <p class="subtitle">Define los módulos del core de autenticación.</p>
-      </div>
+    <nz-page-header
+      nzTitle="{{ isEdit() ? 'Editar módulo' : 'Crear módulo' }}"
+      nzSubtitle="Define los módulos del core de autenticación."
+    ></nz-page-header>
+
+    <div class="auth-edit-wrapper">
+      <nz-card nzTitle="Información del módulo" nzBordered="false">
+        <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
+          <div nz-row nzGutter="16" class="auth-edit-grid">
+            <div nz-col nzXs="24" nzSm="12">
+              <nz-form-item>
+                <nz-form-label nzRequired nzFor="name">Nombre</nz-form-label>
+                <nz-form-control nzErrorTip="Requerido">
+                  <input id="name" nz-input formControlName="name" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+
+            <div nz-col nzXs="24">
+              <nz-form-item>
+                <nz-form-label nzFor="description">Descripción</nz-form-label>
+                <nz-form-control>
+                  <input id="description" nz-input formControlName="description" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+
+          <div class="auth-edit-actions">
+            <button nz-button nzType="default" (click)="cancel()" type="button">Cancelar</button>
+            <button nz-button nzType="primary" [disabled]="form.invalid" [nzLoading]="saving()" type="submit">
+              {{ isEdit() ? 'Guardar cambios' : 'Crear módulo' }}
+            </button>
+          </div>
+        </form>
+      </nz-card>
     </div>
-
-    <form nz-form [formGroup]="form" (ngSubmit)="submit()" class="form">
-      <label nz-form-item>
-        <span nz-form-label>Nombre</span>
-        <nz-form-control nzErrorTip="Requerido">
-          <input nz-input formControlName="name" />
-        </nz-form-control>
-      </label>
-
-      <label nz-form-item>
-        <span nz-form-label>Descripción</span>
-        <nz-form-control>
-          <input nz-input formControlName="description" />
-        </nz-form-control>
-      </label>
-
-      <div class="actions">
-        <button nz-button nzType="default" (click)="cancel()" type="button">Cancelar</button>
-        <button nz-button nzType="primary" [disabled]="form.invalid || saving()" type="submit">
-          {{ isEdit() ? 'Guardar cambios' : 'Crear módulo' }}
-        </button>
-      </div>
-    </form>
   `,
   styles: [
     `
-      .form { max-width: 520px; display: flex; flex-direction: column; gap: 12px; }
-      .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-      .subtitle { color: #6b7280; margin: 0; }
-      .actions { display: flex; gap: 8px; justify-content: flex-end; }
+      :host ::ng-deep .ant-page-header { padding-left: 0; padding-right: 0; margin-bottom: 12px; }
+      .auth-edit-wrapper { padding: 16px 24px 24px; }
+      .auth-edit-grid { margin-top: 8px; }
+      .auth-edit-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px; }
+      @media (max-width: 767px) {
+        .auth-edit-wrapper { padding: 12px 12px 24px; }
+        .auth-edit-actions { justify-content: flex-start; }
+      }
     `,
   ],
-  imports: [CommonModule, ReactiveFormsModule, NzFormModule, NzInputModule, NzButtonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NzFormModule,
+    NzInputModule,
+    NzButtonModule,
+    NzPageHeaderModule,
+    NzCardModule,
+    NzGridModule,
+  ],
 })
 export class ModuleFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
